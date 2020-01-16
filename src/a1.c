@@ -14,6 +14,7 @@
 
 #include "graphics.h"
 #include "world.h"
+#include "playerController.h"
 
 extern GLubyte world[WORLDX][WORLDY][WORLDZ];
 struct timespec currentTime;
@@ -260,7 +261,12 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
     else
     {
         updateWorld(world, delta);
-        /* your code goes here */
+        getViewPosition(&x, &y, &z);
+        float curr[3] = {x,y,z};
+        getOldViewPosition(&x, &y, &z);
+        float prev[3] = {x,y,z};
+        updatePlayer(prev, curr, world);
+        setViewPosition(curr[0], curr[1], curr[2]);
     }
 }
 
@@ -364,6 +370,9 @@ int main(int argc, char **argv)
 
         //Build map
         initWorld(world);
+        float spawn[3] = {0,0,0};
+        initPlayer(spawn);
+        setViewPosition(spawn[0], spawn[1], spawn[2]);
     }
 
     //Record initial time
@@ -376,6 +385,7 @@ int main(int argc, char **argv)
     if (testWorld != 1) 
     {
         destroyWorld();
+        endGamePlayer();
     }
 
     return 0;

@@ -11,8 +11,11 @@
 #include "graphics.h"
 #include "world.h"
 
-void initPlayer();
-void uodatePlayer();
+#define MAX_PLAYER_HEIGHT CLOUD-2
+#define PLAYER_BUFFER 0.5
+
+void initPlayer(float spawnLocation[3]);
+void updatePlayer(float prev[3], float curr[3], GLubyte world[WORLDX][WORLDY][WORLDZ]);
 void endGamePlayer();
 
 #endif
