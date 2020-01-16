@@ -351,13 +351,16 @@ int main(int argc, char **argv)
     else
     {
         //Brown
-        setUserColour(BROWN, 0.61, 0.46, 0.33, 1.0, 0.61, 0.46, 0.33, 1.0);
+        setUserColour(BROWN, 0.61, 0.46, 0.33, 1.0, 0.1, 0.1, 0.1, 1.0);
         //Green 147 163 104
-        setUserColour(GREEN, 0.58, 0.64, 0.41, 1.0, 0.58, 0.64, 0.41, 1.0);
+        setUserColour(GREEN, 0.58, 0.64, 0.41, 1.0, 0.1, 0.1, 0.1, 1.0);
         //Purple
         setUserColour(PURPLE, 0.44, 0.24, 0.31, 1.0, 0.2, 0.2, 0.2, 1.0);
         //Cloud
         setUserColour(CLOUD, 0.9, 0.9, 0.8, 0.5, 0.2, 0.2, 0.2, 0.5);
+        //Green hill
+        for (int i = 0; i < 10; i++)
+            setUserColour(HILL+i, 0.58, 0.64, 0.41, 1.0, 0.1+0.02*i, 0.1+0.02*i, 0.1+0.02*i, 1.0);
 
         //Build map
         initWorld(world);

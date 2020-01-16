@@ -2,32 +2,133 @@
  * Nolan Mullins
  * 0939720
  * 2020-01-15
- * Game programing - utility functions
+ * Game programing - world utility functions
  ****************************************/
 
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "graphics.h"
 #include "world.h"
 #include "list.h"
 
+#define BASE_PADDING 10
+#define HILL_COUNT 30
+#define VALLEY_COUNT 20
+
 List* clouds;
 
 void generateBase(int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ]) {
-    for (int y = 5; y < 8; y++)
+    for (int y = GROUND_LEVEL+1; y < GROUND_LEVEL+4; y++)
         for (int i = x-2; i <= x+2; i++)
             for (int j = z-2; j <= z+2; j++)
                 world[i][y][j] = PURPLE;
+}
+
+bool isSpaceOccupied(int x, int yLayer, int z, int w, int l, GLubyte world[WORLDX][WORLDY][WORLDZ], bool lookForBase)
+{
+    if (x < 0)
+        x=0;
+    if (z < 0)
+        z=0;
+    
+    for (int xCord = x; xCord < x+w; xCord++)
+        for (int zCord = z; zCord < z+l; zCord++)
+            if (world[xCord][yLayer][zCord] > 0)
+                if (lookForBase && world[xCord][yLayer][zCord] == PURPLE)
+                    return true;
+                else if (!lookForBase)
+                    return true;
+    return false;
+}
+
+void fillSpace(int x, int yLayer, int z, int w, int l, int blockType, GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+    for (int xCord = x; xCord < x+w; xCord++)
+        for (int zCord = z; zCord < z+l; zCord++)
+            world[xCord][yLayer][zCord] = blockType;
+}
+
+void generateHill(GLubyte world[WORLDX][WORLDY][WORLDZ]) 
+{
+    int attempts = 0;
+    while (attempts < 50)
+    {
+        int w = rand()%15+5;
+        int l = rand()%15+5;
+        int x = rand()%(100-w-2)+2;
+        int z = rand()%(100-l-2)+2;
+        if (isSpaceOccupied(x-BASE_PADDING, GROUND_LEVEL+1, z-BASE_PADDING, w+(2*BASE_PADDING), l+(2*BASE_PADDING), world, true))
+        {
+            attempts++;
+            continue;
+        }
+        int smSide = w;
+        if (w > l)
+            smSide = l;
+        int layers = rand()%(smSide/3)+1;
+        for (int h = 0; h < layers; h++) {
+            fillSpace(x, GROUND_LEVEL+h+1, z, w, l, HILL+h+1, world);
+            int scale = 1;
+            if (rand()%10 > 5)
+                scale = 2;
+            x+=1*scale;
+            z+=1*scale;
+            w-=2*scale;
+            l-=2*scale;
+            if (w<3 || l<3)
+                break;
+        }
+        break;
+    }
+}
+
+void generateValley(GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+    int attempts = 0;
+    while (attempts < 50)
+    {
+        int w = rand()%15+5;
+        int l = rand()%15+5;
+        int x = rand()%(100-w-2)+2;
+        int z = rand()%(100-l-2)+2;
+        //Look for bases within 5 blocks and hills within 2 blocks
+        if (isSpaceOccupied(x-BASE_PADDING, GROUND_LEVEL+1, z-BASE_PADDING, w+(2*BASE_PADDING), l+(2*BASE_PADDING), world, true) ||
+            isSpaceOccupied(x-2, GROUND_LEVEL+1, z-2, w+4, l+4, world, false))
+        {
+            attempts++;
+            continue;
+        }
+
+        int smSide = w;
+        if (w > l)
+            smSide = l;
+        int depthModifier = 0;
+        if (smSide >= 12)
+            depthModifier = 1;
+        int layers = rand()%2+2+depthModifier;
+        for (int h = 0; h > -layers; h--) {
+            fillSpace(x, GROUND_LEVEL+h, z, w, l, 0, world);
+            x++;
+            z++;
+            w-=2;
+            l-=2;
+            if (w<3 || l<3)
+                break;
+        }
+        break;
+    }
 }
 
 Cloud* generateCloud()
 {
     Cloud* c = malloc(sizeof(Cloud));
 
-    c->velocity = 1.75;
+    //c->velocity = (float)rand()/(float)(RAND_MAX/2.0);
+    c->velocity = .5;
     c->time = 0;
 
     c->location[Y] = CLOUD_HEIGHT;
@@ -53,20 +154,26 @@ void generateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ])
     memset(world, 0, sizeof(world[0][0][0]*WORLDX*WORLDY*WORLDZ));
 
     for (i = 0; i < WORLDX; i++)
-        for (j = 0; j < 4; j++)
+        for (j = 0; j < GROUND_LEVEL; j++)
             for (k = 0; k < WORLDZ; k++)
                 world[i][j][k] = BROWN;
 
     for (i = 0; i < WORLDX; i++)
-        for (j = 4; j < 5; j++)
             for (k = 0; k < WORLDZ; k++)
-                world[i][j][k] = GREEN;
+                world[i][GROUND_LEVEL][k] = GREEN;
 
+    //Randomly place the bases in opposite corners
     int x = rand()%10+8;
     int z = rand()%20+30;
     generateBase(x, z, world);
     generateBase(100-x-1, 99-z, world);
 
+    int numHills = rand()%15+HILL_COUNT;
+    int numValley = rand()%10+VALLEY_COUNT;
+    for (int i = 0; i < numHills; i++)
+            generateHill(world);
+    for (int i = 0; i < numValley; i++)
+            generateValley(world);
 }
 
 void initWorld(GLubyte world[WORLDX][WORLDY][WORLDZ]) 

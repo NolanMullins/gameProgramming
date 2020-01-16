@@ -20,3 +20,6 @@ a1: $(OBJ)
 clean:
 	rm $(EXE) *.o src/*.o
 
+run:
+	./$(EXE)
+
