@@ -16,6 +16,10 @@
 #define WORLDY 50
 #define WORLDZ 100
 
+#define BROWN 10
+#define GREEN 11
+#define PURPLE 12
+
 /* list of cubes to draw with each screen update */
 #define MAX_DISPLAY_LIST 500000
 

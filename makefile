@@ -12,7 +12,7 @@ OBJ = src/a1.o src/utils.o src/graphics.o src/visible.o
 EXE = a1
 
 a1: $(OBJ)
-	$(CC) $(C) -o $(EXE) $(INCLUDES)
+	$(CC) $(OBJ) -o $(EXE) $(INCLUDES)
 
 %.o : %.c
 	$(CC) -c $*.c -o $*.o $(INCLUDES)

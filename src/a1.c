@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #include "graphics.h"
 #include "utils.h"
@@ -279,6 +280,7 @@ void mouse(int button, int state, int x, int y)
 
 int main(int argc, char **argv)
 {
+    srand(time(NULL));
     int i, j, k;
     /* initialize the graphics system */
     graphicsInit(&argc, argv);
@@ -339,8 +341,14 @@ int main(int argc, char **argv)
     }
     else
     {
-        setUserColour(9, 0.7, 0.3, 0.7, 1.0, 0.3, 0.15, 0.3, 1.0);
-        generateWorld(&world);
+        //Brown
+        setUserColour(BROWN, 0.61, 0.46, 0.33, 1.0, 0.61, 0.46, 0.33, 1.0);
+        //Green 147 163 104
+        setUserColour(GREEN, 0.58, 0.64, 0.41, 1.0, 0.58, 0.64, 0.41, 1.0);
+        //Purple
+        setUserColour(PURPLE, 0.44, 0.24, 0.31, 1.0, 0.2, 0.2, 0.2, 1.0);
+        //Build map
+        generateWorld(world);
     }
 
     /* starts the graphics processing loop */

@@ -10,6 +10,6 @@
 
 #include "graphics.h"
 
-void generateWorld(GLubyte (*world)[WORLDX][WORLDY][WORLDZ]);
+void generateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ]);
 
 #endif
