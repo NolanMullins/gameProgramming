@@ -19,6 +19,7 @@
 #define BROWN 10
 #define GREEN 11
 #define PURPLE 12
+#define CLOUD 13
 
 /* list of cubes to draw with each screen update */
 #define MAX_DISPLAY_LIST 500000

@@ -13,7 +13,7 @@
 #include <time.h>
 
 #include "graphics.h"
-#include "utils.h"
+#include "world.h"
 
 extern GLubyte world[WORLDX][WORLDY][WORLDZ];
 
@@ -250,7 +250,7 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
     }
     else
     {
-
+        updateWorld(world);
         /* your code goes here */
     }
 }
@@ -347,12 +347,21 @@ int main(int argc, char **argv)
         setUserColour(GREEN, 0.58, 0.64, 0.41, 1.0, 0.58, 0.64, 0.41, 1.0);
         //Purple
         setUserColour(PURPLE, 0.44, 0.24, 0.31, 1.0, 0.2, 0.2, 0.2, 1.0);
+        //Cloud
+        setUserColour(CLOUD, 0.9, 0.9, 0.8, 0.5, 0.2, 0.2, 0.2, 0.5);
+
         //Build map
-        generateWorld(world);
+        initWorld(world);
     }
 
     /* starts the graphics processing loop */
     /* code after this will not run until the program exits */
     glutMainLoop();
+    
+    if (testWorld != 1) 
+    {
+        destroyWorld();
+    }
+
     return 0;
 }
