@@ -26,12 +26,23 @@ void generateBase(int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ]) {
 Cloud* generateCloud()
 {
     Cloud* c = malloc(sizeof(Cloud));
+
+    c->velocity = 1.75;
+    c->time = 0;
+
     c->location[Y] = CLOUD_HEIGHT;
-    c->location[X] = 20;
-    c->location[Z] = 49;
-    memset(c->shape, 0, sizeof(c->shape[0][0])*5*10);
-    for (int i = 0; i < 5; i++)
-        c->shape[0][i] = CLOUD;
+    c->location[X] = rand()%(100-CLOUD_WIDTH);
+    c->location[Z] = rand()%(100-CLOUD_LENGTH);
+    memset(c->shape, 0, sizeof(c->shape[0][0])*CLOUD_WIDTH*CLOUD_LENGTH);
+
+    //Generate shape
+    int width = rand()%(CLOUD_WIDTH-3) + 3;
+    int length = rand()%(CLOUD_LENGTH-5) + 5;
+
+    for (int x = 0; x < width; x++)
+        for (int y = 0; y < length; y++)
+            c->shape[x][y] = 1;
+
     return c;
 }
 
@@ -53,8 +64,6 @@ void generateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ])
 
     int x = rand()%10+8;
     int z = rand()%20+30;
-    printf("%d\n", x);
-    printf("%d\n", z);
     generateBase(x, z, world);
     generateBase(100-x-1, 99-z, world);
 
@@ -65,22 +74,42 @@ void initWorld(GLubyte world[WORLDX][WORLDY][WORLDZ])
     generateWorld(world);
     //Add clouds
     clouds = initList();
-    listAdd(clouds, generateCloud());
-    listAdd(clouds, generateCloud());
+    int numClouds = rand()%15 + 10;
+    for (int i = 0; i < numClouds; i++)
+        listAdd(clouds, generateCloud());
 }
 
-void updateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ])
+void updateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ], double deltaTime)
 {
-    //Need to update clouds here
+    //Remove old cloud position
+    for (int x = 0; x < WORLDX; x++)
+        for (int z = 0; z < WORLDZ; z++)
+            world[x][CLOUD_HEIGHT][z] = 0;
+
+    //Update each cloud
     for (int i = 0; i < listSize(clouds); i++)
     {
         Cloud* c = listGet(clouds, i);
-        //Remove old cloud position
-        //Add new cloud position
-        for (int x = c->location[X]; x < c->location[X]+5; x++)
-        {
 
+        //Update cloud velocity timing, (move every X amt of time)
+        c->time += deltaTime;
+        if (c->time > c->velocity) 
+        {
+            c->time = 0;
+            //Check if the cloud needs to be wrapped
+            c->location[Z] = c->location[Z] + 1;
+            if (c->location[Z] > WORLDZ)
+                c->location[Z] = 0;
         }
+
+        //Add new cloud position to world
+        for (int cloudX = 0; cloudX < CLOUD_WIDTH; cloudX++)
+            for (int cloudZ = 0; cloudZ < CLOUD_LENGTH; cloudZ++)
+                if (c->shape[cloudX][cloudZ])
+                    if (c->location[Z] + cloudZ >= WORLDZ) 
+                        world[c->location[X]+cloudX][CLOUD_HEIGHT][c->location[Z]+cloudZ-WORLDZ] = CLOUD;
+                    else
+                        world[c->location[X]+cloudX][CLOUD_HEIGHT][c->location[Z]+cloudZ] = CLOUD;
     }
 }
 

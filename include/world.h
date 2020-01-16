@@ -13,16 +13,20 @@
 #define X 0
 #define Y 1
 #define Z 2
-#define CLOUD_HEIGHT 45
+#define CLOUD_HEIGHT 49
+#define CLOUD_WIDTH 10 
+#define CLOUD_LENGTH 20
 
 typedef struct cloud
 {
 	int location[3];
-    int shape[5][10];
+    double velocity;
+    double time;
+    int shape[CLOUD_WIDTH][CLOUD_LENGTH];
 } Cloud;
 
 void initWorld(GLubyte world[WORLDX][WORLDY][WORLDZ]);
-void updateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ]);
+void updateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ], double deltaTime);
 void destroyWorld();
 void generateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ]);
 

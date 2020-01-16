@@ -16,6 +16,7 @@
 #include "world.h"
 
 extern GLubyte world[WORLDX][WORLDY][WORLDZ];
+struct timespec currentTime;
 
 /* mouse function called by GLUT when a button is pressed or released */
 void mouse(int, int, int, int);
@@ -152,6 +153,14 @@ void update()
     float *la;
     float x, y, z;
 
+    //Solve for frame delta
+    struct timespec timeStruct;
+    double delta;
+    clock_gettime(CLOCK_MONOTONIC, &timeStruct);
+    delta = (timeStruct.tv_sec - currentTime.tv_sec);
+    delta += (timeStruct.tv_nsec - currentTime.tv_nsec) / 1000000000.0;
+    currentTime = timeStruct;
+
     /* sample animation for the testworld, don't remove this code */
     /* demo of animating mobs */
     if (testWorld)
@@ -250,7 +259,7 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
     }
     else
     {
-        updateWorld(world);
+        updateWorld(world, delta);
         /* your code goes here */
     }
 }
@@ -353,6 +362,9 @@ int main(int argc, char **argv)
         //Build map
         initWorld(world);
     }
+
+    //Record initial time
+    clock_gettime(CLOCK_MONOTONIC, &currentTime);
 
     /* starts the graphics processing loop */
     /* code after this will not run until the program exits */
