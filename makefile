@@ -23,3 +23,8 @@ clean:
 run:
 	./$(EXE)
 
+install:
+	sudo apt-get install freeglut3-dev
+
+setup:
+	export DISPLAY=:0

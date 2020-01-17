@@ -34,6 +34,8 @@ bool checkCollision(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WOR
 void updatePlayer(float prev[3], float curr[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
 
+    float direction[3] = {curr[0]-prev[0], curr[1]-prev[1], curr[2]-prev[2]};
+    printf("%.3f %.3f %.3f\n", direction[0], direction[1], direction[2]);
     float x = -curr[0];
     float y = -curr[1];
     float z = -curr[2];
@@ -49,6 +51,13 @@ void updatePlayer(float prev[3], float curr[3], GLubyte world[WORLDX][WORLDY][WO
     if (checkCollision(x,y,z+PLAYER_BUFFER, world))
         flag=1;
 
+    if (checkCollision(x-PLAYER_BUFFER,y,z, world))
+        flag=1;
+    if (checkCollision(x,y-PLAYER_BUFFER,z, world))
+        flag=1;
+    if (checkCollision(x,y,z-PLAYER_BUFFER, world))
+        flag=1;
+
     printf("Flag: %d\n", flag);
 
     if (flag) 
@@ -60,9 +69,9 @@ void updatePlayer(float prev[3], float curr[3], GLubyte world[WORLDX][WORLDY][WO
         if (flag)
         {
             float direction[3] = {curr[0]-prev[0], curr[1]-prev[1], curr[2]-prev[2]};
-            curr[0]-=direction[0]*2;
-            curr[1]-=direction[1]*2;
-            curr[2]-=direction[2]*2;
+            curr[0]-=direction[0]*4;
+            curr[1]-=direction[1]*4;
+            curr[2]-=direction[2]*4;
             flag = checkCollision(-curr[0], -curr[1], -curr[2], world);
             printf("%.3f %.3f %.3f\n", direction[0], direction[1], direction[2]);
             printf("Updated flag: %d\n", flag);
