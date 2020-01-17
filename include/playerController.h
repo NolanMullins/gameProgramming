@@ -16,6 +16,7 @@
 
 void initPlayer(float spawnLocation[3]);
 void updatePlayer(float prev[3], float curr[3], GLubyte world[WORLDX][WORLDY][WORLDZ]);
+void drawUI();
 void endGamePlayer();
 
 #endif

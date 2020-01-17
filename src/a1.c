@@ -138,8 +138,7 @@ void draw2D()
     }
     else
     {
-
-        /* your code goes here */
+        drawUI();
     }
 }
 

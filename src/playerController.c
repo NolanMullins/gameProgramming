@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <math.h>
 
 #include "graphics.h"
 #include "playerController.h"
@@ -23,58 +25,86 @@ void initPlayer(float spawnLocation[3])
 
 bool checkCollision(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
-    if ((int)x > WORLDX || (int)y > WORLDY || (int)z > WORLDZ)
+    //Check if the player is inbounds
+    if ((int)x <= 0 || (int)y <= 0 || (int)z <= 0)
+        return true;
+    if ((int)x >= WORLDX || (int)y >= CLOUD_HEIGHT-2 || (int)z >= WORLDZ)
         return true;
 
+    //Check if the block is empty
     if (world[(int)x][(int)y][(int)z]!=0)
         return true;
     return false;
 }
 
+void findEmpty(float loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ], int radius) 
+{
+    //For some reason the player location is stored backwards...
+    loc[X] = -loc[X];
+    loc[Y] = -loc[Y];
+    loc[Z] = -loc[Z];
+    //Look for a close by empty cube to put the player
+    for (int i = (int)loc[X]-radius; i <= (int)loc[X]+radius; i++)
+    {
+        for (int j = (int)loc[Y]; j <= (int)loc[Y]+radius; j++)
+        {
+            for (int k = (int)loc[Z]-radius; k <= (int)loc[Z]+radius; k++)
+            {
+                if (i >= WORLDX || j >= WORLDY || k >= WORLDZ)
+                    continue;
+                if (!checkCollision(i, j, k, world))
+                {
+                    loc[X] = -i-.5;
+                    loc[Y] = -j-.5;
+                    loc[Z] = -k-.5;
+                    return;
+                }
+            }
+        }
+    }
+    //flip cord back
+    loc[X] = -loc[X];
+    loc[Y] = -loc[Y];
+    loc[Z] = -loc[Z];
+    //If nothing was found increase the search radius, allow max of 3 blocks away
+    if (radius <= 2)
+        findEmpty(loc, world, radius+1);
+}
+
 void updatePlayer(float prev[3], float curr[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
-
     float direction[3] = {curr[0]-prev[0], curr[1]-prev[1], curr[2]-prev[2]};
-    printf("%.3f %.3f %.3f\n", direction[0], direction[1], direction[2]);
     float x = -curr[0];
     float y = -curr[1];
     float z = -curr[2];
 
     int flag = 0;
-
     if (checkCollision(x,y,z, world))
         flag=1;
-    if (checkCollision(x+PLAYER_BUFFER,y,z, world))
+    if (checkCollision(round(x),round(y),round(z), world))
         flag=1;
-    if (checkCollision(x,y+PLAYER_BUFFER,z, world))
-        flag=1;
-    if (checkCollision(x,y,z+PLAYER_BUFFER, world))
+    if (checkCollision(x-direction[0], y-direction[1], z-direction[2], world))
         flag=1;
 
-    if (checkCollision(x-PLAYER_BUFFER,y,z, world))
-        flag=1;
-    if (checkCollision(x,y-PLAYER_BUFFER,z, world))
-        flag=1;
-    if (checkCollision(x,y,z-PLAYER_BUFFER, world))
-        flag=1;
-
-    printf("Flag: %d\n", flag);
-
-    if (flag) 
+    //If there is a collision
+    if (flag)
     {
-        curr[0] = prev[0];
-        curr[1] = prev[1];
-        curr[2] = prev[2];
-
-        if (flag)
+        //Force player to be in bounds
+        if (-curr[Y] >= CLOUD_HEIGHT-2)
         {
-            float direction[3] = {curr[0]-prev[0], curr[1]-prev[1], curr[2]-prev[2]};
-            curr[0]-=direction[0]*4;
-            curr[1]-=direction[1]*4;
-            curr[2]-=direction[2]*4;
-            flag = checkCollision(-curr[0], -curr[1], -curr[2], world);
-            printf("%.3f %.3f %.3f\n", direction[0], direction[1], direction[2]);
-            printf("Updated flag: %d\n", flag);
+            curr[Y] = -(CLOUD_HEIGHT-3);
+        }
+        //If the previous location was somehow inside a block then find a close by empty block
+        if (checkCollision(-prev[0], -prev[1], -prev[2], world))
+        {
+            findEmpty(curr, world, 1);
+        } 
+        //Move the player back to their previous location
+        else 
+        {
+            curr[0] = prev[0];
+            curr[1] = prev[1];
+            curr[2] = prev[2];
         }
     }
 }
