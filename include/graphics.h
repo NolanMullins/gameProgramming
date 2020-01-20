@@ -20,8 +20,10 @@
 #define GREEN 11
 #define PURPLE 12
 #define CLOUD 13
-//Hill takes up 6 layers
+//Hill takes up 10 layers
 #define HILL 14
+//Dirt  takes up 10 layers
+#define DIRT 24
 
 /* list of cubes to draw with each screen update */
 #define MAX_DISPLAY_LIST 500000

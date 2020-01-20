@@ -363,9 +363,16 @@ int main(int argc, char **argv)
         setUserColour(PURPLE, 0.44, 0.24, 0.31, 1.0, 0.2, 0.2, 0.2, 1.0);
         //Cloud
         setUserColour(CLOUD, 0.9, 0.9, 0.8, 0.5, 0.2, 0.2, 0.2, 0.5);
+
+        float inc = 0.02;
         //Green hill
         for (int i = 0; i < 10; i++)
-            setUserColour(HILL+i, 0.58, 0.64, 0.41, 1.0, 0.1+0.02*i, 0.1+0.02*i, 0.1+0.02*i, 1.0);
+            setUserColour(HILL+i, 0.58, 0.64, 0.41, 1.0, 0.1+inc*i, 0.1+inc*i, 0.1+inc*i, 1.0);
+
+        inc = 0.025;
+        //Ground
+        for (int i = 0; i < 10; i++)
+            setUserColour(DIRT+i, 0.48, 0.36, 0.26, 1.0, 0.05+inc*i, 0.05+inc*i, 0.05+inc*i, 1.0);
 
         //Build map
         initWorld(world);

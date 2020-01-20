@@ -16,8 +16,9 @@
 #include "list.h"
 
 #define BASE_PADDING 10
-#define HILL_COUNT 30
-#define VALLEY_COUNT 20
+//30 hills, 20 valley
+#define HILL_COUNT 15
+#define VALLEY_COUNT 30
 
 List* clouds;
 
@@ -156,7 +157,7 @@ void generateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ])
     for (i = 0; i < WORLDX; i++)
         for (j = 0; j < GROUND_LEVEL; j++)
             for (k = 0; k < WORLDZ; k++)
-                world[i][j][k] = BROWN;
+                world[i][j][k] = DIRT+j+1;
 
     for (i = 0; i < WORLDX; i++)
             for (k = 0; k < WORLDZ; k++)

@@ -16,7 +16,7 @@
 #define CLOUD_HEIGHT 49
 #define CLOUD_WIDTH 10 
 #define CLOUD_LENGTH 20
-#define GROUND_LEVEL 4
+#define GROUND_LEVEL 7
 
 typedef struct cloud
 {
