@@ -31,10 +31,10 @@ void generateBase(int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ]) {
 
 bool isSpaceOccupied(int x, int yLayer, int z, int w, int l, GLubyte world[WORLDX][WORLDY][WORLDZ], bool lookForBase)
 {
-    if (x < 0)
-        x=0;
-    if (z < 0)
-        z=0;
+    if (x < 0 || x+w >= WORLDX)
+        return true; 
+    if (z < 0 || z+l >= WORLDZ)
+        return true;
     
     for (int xCord = x; xCord < x+w; xCord++)
         for (int zCord = z; zCord < z+l; zCord++)
@@ -158,10 +158,11 @@ void generateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ])
         for (j = 0; j < GROUND_LEVEL; j++)
             for (k = 0; k < WORLDZ; k++)
                 world[i][j][k] = DIRT+j+1;
-
+    
     for (i = 0; i < WORLDX; i++)
             for (k = 0; k < WORLDZ; k++)
                 world[i][GROUND_LEVEL][k] = GREEN;
+    
 
     //Randomly place the bases in opposite corners
     int x = rand()%10+8;
@@ -175,6 +176,7 @@ void generateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ])
             generateHill(world);
     for (int i = 0; i < numValley; i++)
             generateValley(world);
+    
 }
 
 void initWorld(GLubyte world[WORLDX][WORLDY][WORLDZ]) 
