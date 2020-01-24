@@ -107,10 +107,6 @@ void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, b
     int flag = 0;
     if (checkCollision(-newLoc[X],-newLoc[Y],-newLoc[Z], world))
         flag=1;
-    //if (checkCollision(round(x),round(y),round(z), world))
-        //flag=1;
-    //if (checkCollision(-(pos[X]-direction[0]), -(pos[Y]-direction[1]), -(pos[Z]-direction[2]), world))
-        //flag=1;
 
     if (flag == 0)
     {
