@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <math.h>
 #include <time.h>
 
@@ -36,6 +37,7 @@ extern void getOldViewPosition(float *, float *, float *);
 extern void setOldViewPosition(float, float, float);
 extern void setViewOrientation(float, float, float);
 extern void getViewOrientation(float *, float *, float *);
+extern void getMovementKeys(bool* f, bool* l, bool* r, bool* b);
 
 /* add cube to display list so it will be drawn */
 extern void addDisplayList(int, int, int);
@@ -264,7 +266,12 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
         float curr[3] = {x,y,z};
         getOldViewPosition(&x, &y, &z);
         float prev[3] = {x,y,z};
-        updatePlayer(prev, curr, world);
+        getViewOrientation(&x, &y, &z);
+        float view[3] = {x,y,z};
+        bool f,l,r,b;
+        getMovementKeys(&f, &l, &r, &b);
+        updatePlayerPosition(curr, view, f, l, r, b, world, delta);
+        //updatePlayer(prev, curr, world);
         setViewPosition(curr[0], curr[1], curr[2]);
     }
 }

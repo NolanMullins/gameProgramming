@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <stdbool.h>
 
 #include "graphics.h"
 
@@ -63,6 +64,8 @@ int testWorld = 0;		// sample world for timing tests
 int fps = 0;			// turn on frame per second output
 int netClient = 0;		// network client flag, is client when = 1
 int netServer = 0;		// network server flag, is server when = 1
+//Used to track user input
+bool forward=false,left=false,right=false,back=false;
 
 	/* list of cubes to display */
 int displayList[MAX_DISPLAY_LIST][3];
@@ -677,6 +680,24 @@ void reshape(int w, int h)
 
 }
 
+void keyboardUp(unsigned char key, int x, int y)
+{
+    switch (key) {
+        case 'w':
+            forward=false;
+        break;
+        case 'a':
+            left=false;
+        break;
+        case 's':
+            back=false;
+        break;
+        case 'd':
+            right=false;
+        break;
+    }
+}
+
 	/* respond to keyboard events */
 void keyboard(unsigned char key, int x, int y)
 {
@@ -729,7 +750,8 @@ static int lighton = 1;
          glutPostRedisplay();
          break;
       case 'w':		// forward motion
-         oldvpx = vpx;
+        forward = true;
+         /*oldvpx = vpx;
          oldvpy = vpy;
          oldvpz = vpz;
          rotx = (mvx / 180.0 * 3.141592);
@@ -740,10 +762,11 @@ static int lighton = 1;
             vpy += sin(rotx) * 0.3;
          vpz += cos(roty) * 0.3;
 	 collisionResponse();
-         glutPostRedisplay();
+         glutPostRedisplay();*/
          break;
       case 's':		// backward motion
-         oldvpx = vpx;
+        back = true;
+         /*oldvpx = vpx;
          oldvpy = vpy;
          oldvpz = vpz;
          rotx = (mvx / 180.0 * 3.141592);
@@ -754,27 +777,29 @@ static int lighton = 1;
             vpy -= sin(rotx) * 0.3;
          vpz -= cos(roty) * 0.3;
 	 collisionResponse();
-         glutPostRedisplay();
+         glutPostRedisplay();*/
          break;
       case 'a':		// strafe left motion
-         oldvpx = vpx;
+        left=true;
+         /*oldvpx = vpx;
          oldvpy = vpy;
          oldvpz = vpz;
          roty = (mvy / 180.0 * 3.141592);
          vpx += cos(roty) * 0.3;
          vpz += sin(roty) * 0.3;
 	 collisionResponse();
-         glutPostRedisplay();
+         glutPostRedisplay();*/
          break;
       case 'd':		// strafe right motion
-         oldvpx = vpx;
+        right=true;
+         /*oldvpx = vpx;
          oldvpy = vpy;
          oldvpz = vpz;
          roty = (mvy / 180.0 * 3.141592);
          vpx -= cos(roty) * 0.3;
          vpz -= sin(roty) * 0.3;
 	 collisionResponse();
-         glutPostRedisplay();
+         glutPostRedisplay();*/
          break;
       case 'f':		// toggle flying controls
          if (flycontrol == 0) flycontrol = 1;
@@ -795,6 +820,14 @@ static int lighton = 1;
             fixedVP = 0;
          break;
    }
+}
+
+void getMovementKeys(bool* f, bool* l, bool* r, bool* b) 
+{
+    *f = forward;
+    *l = left;
+    *r = right;
+    *b = back;
 }
 
 	/* load a texture from a file */
@@ -898,6 +931,7 @@ int i, fullscreen;
    glutReshapeFunc (reshape);
    glutDisplayFunc(display);
    glutKeyboardFunc (keyboard);
+   glutKeyboardUpFunc (keyboardUp);
    glutPassiveMotionFunc(passivemotion);
    glutMotionFunc(motion);
    glutMouseFunc(mouse);

@@ -71,6 +71,55 @@ void findEmpty(float loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ], int radius)
         findEmpty(loc, world, radius+1);
 }
 
+void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, bool b, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
+{
+    float rotx = (view[0]/ 180.0 * 3.141592);
+    float roty = (view[1] / 180.0 * 3.141592);
+    float newLoc[3] = {pos[X], pos[Y], pos[Z]};
+    if (f)
+    {
+        newLoc[X] -= sin(roty) * deltaTime * SPEED_MULT;
+        //if (flycontrol == 1)
+        newLoc[Y] += sin(rotx) * deltaTime * SPEED_MULT;
+        newLoc[Z] += cos(roty) * deltaTime * SPEED_MULT;
+    }
+    if (l)
+    {
+        newLoc[X] += cos(roty) * deltaTime * SPEED_MULT;
+        newLoc[Z] += sin(roty) * deltaTime * SPEED_MULT;
+    }
+    if (r)
+    {
+        newLoc[X] -= cos(roty) * deltaTime * SPEED_MULT;
+        newLoc[Z] -= sin(roty) * deltaTime * SPEED_MULT;
+    }
+    if (b)
+    {
+        newLoc[X] += sin(roty) * deltaTime * SPEED_MULT;
+        //if (flycontrol == 1)
+        newLoc[Y] -= sin(rotx) * deltaTime * SPEED_MULT;
+        newLoc[Z] -= cos(roty) * deltaTime * SPEED_MULT;
+    }
+
+
+    float direction[3] = {newLoc[0]-pos[0], newLoc[1]-pos[1], newLoc[2]-pos[2]};
+
+    int flag = 0;
+    if (checkCollision(-newLoc[X],-newLoc[Y],-newLoc[Z], world))
+        flag=1;
+    //if (checkCollision(round(x),round(y),round(z), world))
+        //flag=1;
+    //if (checkCollision(-(pos[X]-direction[0]), -(pos[Y]-direction[1]), -(pos[Z]-direction[2]), world))
+        //flag=1;
+
+    if (flag == 0)
+    {
+        pos[X] = newLoc[X];
+        pos[Y] = newLoc[Y];
+        pos[Z] = newLoc[Z];
+    }
+}
+
 void updatePlayer(float prev[3], float curr[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
     float direction[3] = {curr[0]-prev[0], curr[1]-prev[1], curr[2]-prev[2]};
