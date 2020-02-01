@@ -16,6 +16,7 @@
 #include "graphics.h"
 #include "world.h"
 #include "playerController.h"
+#include "projectile.h"
 
 extern GLubyte world[WORLDX][WORLDY][WORLDZ];
 struct timespec currentTime;
@@ -271,6 +272,7 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
         bool f,l,r,b;
         getMovementKeys(&f, &l, &r, &b);
         updatePlayerPosition(curr, view, f, l, r, b, world, delta);
+        updateProjectiles(world, delta);
         //updatePlayer(prev, curr, world);
         setViewPosition(curr[0], curr[1], curr[2]);
     }
@@ -283,20 +285,7 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
 /*  released */
 void mouse(int button, int state, int x, int y)
 {
-
-    if (button == GLUT_LEFT_BUTTON)
-        printf("left button - ");
-    else if (button == GLUT_MIDDLE_BUTTON)
-        printf("middle button - ");
-    else
-        printf("right button - ");
-
-    if (state == GLUT_UP)
-        printf("up - ");
-    else
-        printf("down - ");
-
-    printf("%d %d\n", x, y);
+    playerInput(button, state, x, y);
 }
 
 int main(int argc, char **argv)
@@ -371,6 +360,11 @@ int main(int argc, char **argv)
         //Cloud
         setUserColour(CLOUD, 0.9, 0.9, 0.8, 0.5, 0.2, 0.2, 0.2, 0.5);
 
+        //setUserColour(BASEA, 214.0/255.0, 84.0/255.0, 99.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+        //setUserColour(BASEB, 89.0/255.0, 179.0/255.0, 109.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+        setUserColour(BASEA, 214.0/255.0, 130.0/255.0, 45.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+        setUserColour(BASEB, 100.0/255.0, 160.0/255.0, 179.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+
         float inc = 0.02;
         //Green hill
         for (int i = 0; i < 10; i++)
@@ -386,6 +380,7 @@ int main(int argc, char **argv)
         float spawn[3] = {0,0,0};
         initPlayer(spawn);
         setViewPosition(spawn[0], spawn[1], spawn[2]);
+        initProjectiles();
     }
 
     //Record initial time

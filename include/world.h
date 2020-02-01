@@ -18,6 +18,8 @@
 #define CLOUD_LENGTH 20
 #define GROUND_LEVEL 7
 
+#define GRAVITY 9.8
+
 typedef struct cloud
 {
 	int location[3];

@@ -13,10 +13,6 @@
 
 GLubyte  world[WORLDX][WORLDY][WORLDZ];
 
-#define MOB_COUNT 10
-#define PLAYER_COUNT 10
-#define TUBE_COUNT 10
-
 extern void update();
 extern void collisionResponse();
 extern void buildDisplayList();

@@ -14,6 +14,7 @@
 #include <math.h>
 
 #include "graphics.h"
+#include "projectile.h"
 #include "playerController.h"
 
 void initPlayer(float spawnLocation[3]) 
@@ -21,6 +22,9 @@ void initPlayer(float spawnLocation[3])
     spawnLocation[0] = -50;
     spawnLocation[1] = -20;
     spawnLocation[2] = -50;
+    memcpy(playerLocation, spawnLocation, sizeof(float)*3);
+    playerOrientation[X] = 0;
+    playerOrientation[Y] = 0;
 }
 
 bool checkCollision(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ])
@@ -114,49 +118,44 @@ void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, b
         pos[Y] = newLoc[Y];
         pos[Z] = newLoc[Z];
     }
+
+    memcpy(playerLocation, pos, sizeof(float)*3);
+    playerOrientation[0] = rotx;
+    playerOrientation[1] = roty;
 }
 
-void updatePlayer(float prev[3], float curr[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
+void playerInput(int button, int state, int x, int y)
 {
-    float direction[3] = {curr[0]-prev[0], curr[1]-prev[1], curr[2]-prev[2]};
-    float x = -curr[0];
-    float y = -curr[1];
-    float z = -curr[2];
-
-    int flag = 0;
-    if (checkCollision(x,y,z, world))
-        flag=1;
-    if (checkCollision(round(x),round(y),round(z), world))
-        flag=1;
-    if (checkCollision(x-direction[0], y-direction[1], z-direction[2], world))
-        flag=1;
-
-    //If there is a collision
-    if (flag)
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
     {
-        //Force player to be in bounds
-        if (-curr[Y] >= CLOUD_HEIGHT-2)
-        {
-            curr[Y] = -(CLOUD_HEIGHT-3);
-        }
-        //If the previous location was somehow inside a block then find a close by empty block
-        if (checkCollision(-prev[0], -prev[1], -prev[2], world))
-        {
-            findEmpty(curr, world, 1);
-        } 
-        //Move the player back to their previous location
-        else 
-        {
-            curr[0] = prev[0];
-            curr[1] = prev[1];
-            curr[2] = prev[2];
-        }
+        float x = sin(playerOrientation[1])*cos(playerOrientation[0]);
+        float y = -sin(playerOrientation[0]);
+        float z = -cos(playerOrientation[1])*cos(playerOrientation[0]);
+
+        #define SPEED 40
+        float velocity[3] = {x*SPEED, y*SPEED, z*SPEED};
+        float location[3] = {-playerLocation[X], -playerLocation[Y], -playerLocation[Z]};
+        createProjectile(0, location, velocity);
     }
+
+    /*
+    else if (button == GLUT_MIDDLE_BUTTON)
+        printf("middle button - ");
+    else
+        printf("right button - ");
+
+    if (state == GLUT_UP)
+        printf("up - ");
+    else
+        printf("down - ");
+
+    printf("%d %d\n", x, y);
+    */
 }
 
 void drawUI()
 {
-
+    //Draw crosshair
 }
 
 void endGamePlayer()

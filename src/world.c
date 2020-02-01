@@ -22,11 +22,11 @@
 
 List* clouds;
 
-void generateBase(int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ]) {
+void generateBase(int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ], int block) {
     for (int y = GROUND_LEVEL+1; y < GROUND_LEVEL+4; y++)
         for (int i = x-2; i <= x+2; i++)
             for (int j = z-2; j <= z+2; j++)
-                world[i][y][j] = PURPLE;
+                world[i][y][j] = block;
 }
 
 bool isSpaceOccupied(int x, int yLayer, int z, int w, int l, GLubyte world[WORLDX][WORLDY][WORLDZ], bool lookForBase)
@@ -37,12 +37,16 @@ bool isSpaceOccupied(int x, int yLayer, int z, int w, int l, GLubyte world[WORLD
         return true;
     
     for (int xCord = x; xCord < x+w; xCord++)
-        for (int zCord = z; zCord < z+l; zCord++)
-            if (world[xCord][yLayer][zCord] > 0)
-                if (lookForBase && world[xCord][yLayer][zCord] == PURPLE)
+    {
+        for (int zCord = z; zCord < z+l; zCord++) {
+            int block = world[xCord][yLayer][zCord];
+            if (block > 0)
+                if (lookForBase && (block == BASEA || block == BASEB))
                     return true;
                 else if (!lookForBase)
                     return true;
+        }
+    }
     return false;
 }
 
@@ -167,8 +171,8 @@ void generateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ])
     //Randomly place the bases in opposite corners
     int x = rand()%10+8;
     int z = rand()%20+30;
-    generateBase(x, z, world);
-    generateBase(100-x-1, 99-z, world);
+    generateBase(x, z, world, BASEA);
+    generateBase(100-x-1, 99-z, world, BASEB);
 
     int numHills = rand()%15+HILL_COUNT;
     int numValley = rand()%10+VALLEY_COUNT;

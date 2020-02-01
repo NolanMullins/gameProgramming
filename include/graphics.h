@@ -16,6 +16,10 @@
 #define WORLDY 50
 #define WORLDZ 100
 
+#define MOB_COUNT 10
+#define PLAYER_COUNT 10
+#define TUBE_COUNT 10
+
 #define BROWN 10
 #define GREEN 11
 #define PURPLE 12
@@ -24,6 +28,8 @@
 #define HILL 14
 //Dirt  takes up 10 layers
 #define DIRT 24
+#define BASEA 34
+#define BASEB 35
 
 /* list of cubes to draw with each screen update */
 #define MAX_DISPLAY_LIST 500000
