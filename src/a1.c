@@ -169,6 +169,8 @@ void draw2D()
         #define PIXEL 2
         #define MAP_BUF PIXEL*10
         int map[WORLDX][WORLDZ];
+        float player[3];
+        getPlayerPos(player);
         computeMiniMap(map, world);
         //Draw minimap
         for (int x = 0; x < WORLDX; x++)
@@ -178,7 +180,10 @@ void draw2D()
             {
                 int screenY = screenHeight - MAP_BUF - WORLDZ*PIXEL + y*PIXEL;
                 float r,g,b,a,dr,dg,db,da;
-                getUserColour(map[x][y], &r, &g, &b, &a, &dr, &dg, &db, &da);
+                r=g=b=dr=dg=db=0;
+                a=1.0;
+                if (abs((int)player[X]+x) > 1 || abs((int)player[Z]+y) > 1)
+                    getUserColour(map[x][y], &r, &g, &b, &a, &dr, &dg, &db, &da);
                 GLfloat col[] = {r,g,b,a};
                 set2Dcolour(col);
                 draw2Dbox(screenX,screenY,screenX+PIXEL,screenY+PIXEL);
@@ -411,12 +416,12 @@ int main(int argc, char **argv)
         float inc = 0.02;
         //Green hill
         for (int i = 0; i < 10; i++)
-            setUserColour(HILL+i, 0.58, 0.64, 0.41, 1.0, 0.1+inc*i, 0.1+inc*i, 0.1+inc*i, 1.0);
+            setUserColour(HILL+i, 67.0/255.0+inc*i, 121.0/255.0+inc*i*2, 59.0/255.0+inc*i, 1.0, 75.0/255.0, 96.0/255.0, 47.0/255.0, 0.5);
 
         inc = 0.025;
         //Ground
         for (int i = 0; i < 10; i++)
-            setUserColour(DIRT+i, 0.48, 0.36, 0.26, 1.0, 0.05+inc*i, 0.05+inc*i, 0.05+inc*i, 1.0);
+            setUserColour(DIRT+i, 79.0/255.0+inc*i*2, 47.0/255.0+inc*i, 29.0/255.0+inc*i, 1.0, 51.0/255.0, 29.0/255.0, 18.0/255.0, 0.5);
 
         //Build map
         initWorld(world);

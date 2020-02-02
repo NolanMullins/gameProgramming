@@ -24,5 +24,6 @@ void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, b
 void playerInput(int button, int state, int x, int y);
 void drawUI();
 void endGamePlayer();
+void getPlayerPos(float pos[3]);
 
 #endif

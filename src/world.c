@@ -165,7 +165,7 @@ void generateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ])
     
     for (i = 0; i < WORLDX; i++)
             for (k = 0; k < WORLDZ; k++)
-                world[i][GROUND_LEVEL][k] = GREEN;
+                world[i][GROUND_LEVEL][k] = HILL;
     
 
     //Randomly place the bases in opposite corners

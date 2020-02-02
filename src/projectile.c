@@ -29,14 +29,47 @@ void initProjectiles()
     objs = initList();
 }
 
-bool collisionHelper(float pos[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
+bool collision(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
-    static float size[3] = {WORLDX, WORLDY, WORLDZ};
+    /*static float size[3] = {WORLDX, WORLDY, WORLDZ};
     for (int i = 0; i < 3; i++)
         if ((int)pos[i] < 0 || (int)pos[i] >= size[i])
-            return false;
-    if (world[(int)pos[X]][(int)pos[Y]][(int)pos[Z]] > 0)
+            return false;*/
+    if (x < 0 || x > WORLDX || y < 0 || y > WORLDY || z < 0 || z > WORLDZ)
+        return false;
+    if (world[(int)x][(int)y][(int)z] > 0)
         return true;
+    return false;
+}
+
+bool collisionHelper(float pos[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+    if (collision(pos[X], pos[Y], pos[Z], world))
+        return true;
+    if (collision(pos[X], pos[Y]+0.5, pos[Z], world)) {
+        pos[Y]+=0.5;
+        return true;
+    }
+    if (collision(pos[X], pos[Y]-0.5, pos[Z], world)) {
+        pos[Y]-=0.5;
+        return true;
+    }
+    if (collision(pos[X]+0.5, pos[Y], pos[Z], world)) {
+        pos[X]+=0.5;
+        return true;
+    }
+    if (collision(pos[X]-0.5, pos[Y], pos[Z], world)) {
+        pos[X]-=0.5;
+        return true;
+    }
+    if (collision(pos[X], pos[Y], pos[Z]+0.5, world)) {
+        pos[Z]+=0.5;
+        return true;
+    }
+    if (collision(pos[X], pos[Y], pos[Z]-0.5, world)) {
+        pos[Z]-=0.5;
+        return true;
+    }
     return false;
 }
 

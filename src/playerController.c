@@ -106,10 +106,17 @@ void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, b
     }
 
 
+    //Check direction player is moving in for clear path
     float direction[3] = {newLoc[0]-pos[0], newLoc[1]-pos[1], newLoc[2]-pos[2]};
+    float len = sqrt(direction[X]*direction[X] + direction[Y]*direction[Y] + direction[Z]*direction[Z]);
+    direction[X] = direction[X] / (len);
+    direction[Y] = direction[Y] / (len);
+    direction[Z] = direction[Z] / (len);
 
     int flag = 0;
     if (checkCollision(-newLoc[X],-newLoc[Y],-newLoc[Z], world))
+        flag=1;
+    if (len > 0 && checkCollision(-(newLoc[X] + direction[X]),-(newLoc[Y] + direction[Y]),-(newLoc[Z] + direction[Z]), world)) 
         flag=1;
 
     if (flag == 0)
@@ -151,6 +158,11 @@ void playerInput(int button, int state, int x, int y)
 
     printf("%d %d\n", x, y);
     */
+}
+
+void getPlayerPos(float pos[3])
+{
+    memcpy(pos, playerLocation, sizeof(float)*3);
 }
 
 void drawUI()
