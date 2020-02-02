@@ -30,6 +30,7 @@
 #define DIRT 24
 #define BASEA 34
 #define BASEB 35
+#define METEOR 36
 
 /* list of cubes to draw with each screen update */
 #define MAX_DISPLAY_LIST 500000

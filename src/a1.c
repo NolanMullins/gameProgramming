@@ -113,6 +113,28 @@ void collisionResponse()
     /* your code for collisions goes here */
 }
 
+void computeMiniMap(int map[WORLDX][WORLDZ], GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+    memset(map, 0, sizeof(int)*WORLDX*WORLDZ);
+    for (int y = GROUND_LEVEL+5; y >= 0; y--)
+    {
+        bool flag = false;
+        for (int x = 0; x < WORLDX; x++)
+        {
+            for (int z = 0; z < WORLDZ; z++)
+            {
+                if (map[x][z] == 0)
+                {
+                    flag = true;
+                    map[x][z] = world[x][y][z];
+                }
+            }
+        }
+        if (!flag)
+            break;
+    }
+}
+
 /******* draw2D() *******/
 /* draws 2D shapes on screen */
 /* use the following functions: 			*/
@@ -141,7 +163,28 @@ void draw2D()
     }
     else
     {
+        //screenWidth, screenHeight;
         drawUI();
+
+        #define PIXEL 2
+        #define MAP_BUF PIXEL*10
+        int map[WORLDX][WORLDZ];
+        computeMiniMap(map, world);
+        //Draw minimap
+        for (int x = 0; x < WORLDX; x++)
+        {
+            int screenX = screenWidth - MAP_BUF - WORLDX*PIXEL + x*PIXEL;
+            for(int y = 0; y < WORLDZ; y++)
+            {
+                int screenY = screenHeight - MAP_BUF - WORLDZ*PIXEL + y*PIXEL;
+                float r,g,b,a,dr,dg,db,da;
+                getUserColour(map[x][y], &r, &g, &b, &a, &dr, &dg, &db, &da);
+                GLfloat col[] = {r,g,b,a};
+                set2Dcolour(col);
+                draw2Dbox(screenX,screenY,screenX+PIXEL,screenY+PIXEL);
+            }
+        }
+        //draw2Dbox(screenWidth-100-10, screenHeight-100-10, screenWidth-10, screenHeight-10);
     }
 }
 
