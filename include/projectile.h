@@ -11,7 +11,6 @@
 #include "graphics.h"
 #include "world.h"
 #include "list.h"
-#include "projectile.h"
 
 typedef struct projectile
 {
@@ -26,6 +25,6 @@ void createProjectile(int type, float spawnLocation[3], float velocity[3]);
 void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);
 List* getProjectiles();
 int getNumberOfActiveProjectiles();
-void endGame();
+void endGameProjectiles();
 
 #endif

@@ -17,6 +17,7 @@
 #include "world.h"
 #include "playerController.h"
 #include "projectile.h"
+#include "meteor.h"
 
 extern GLubyte world[WORLDX][WORLDY][WORLDZ];
 struct timespec currentTime;
@@ -320,6 +321,7 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
         bool f,l,r,b;
         getMovementKeys(&f, &l, &r, &b);
         updatePlayerPosition(curr, view, f, l, r, b, world, delta);
+        updateMeteors(world, delta);
         updateProjectiles(world, delta);
         //updatePlayer(prev, curr, world);
         setViewPosition(curr[0], curr[1], curr[2]);
@@ -413,6 +415,11 @@ int main(int argc, char **argv)
         setUserColour(BASEA, 214.0/255.0, 130.0/255.0, 45.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
         setUserColour(BASEB, 100.0/255.0, 160.0/255.0, 179.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
 
+        setUserColour(METEOR, 10.0/255.0, 10.0/255.0, 10.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+        setUserColour(TAIL, 214.0/255.0, 21.0/255.0, 3.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+        setUserColour(TAIL+1, 252.0/255.0, 94.0/255.0, 1.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+        setUserColour(TAIL+2, 200.0/255.0, 200.0/255.0, 200.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+
         float inc = 0.02;
         //Green hill
         for (int i = 0; i < 10; i++)
@@ -429,6 +436,7 @@ int main(int argc, char **argv)
         initPlayer(spawn);
         setViewPosition(spawn[0], spawn[1], spawn[2]);
         initProjectiles();
+        initMeteors();
     }
 
     //Record initial time
@@ -442,6 +450,8 @@ int main(int argc, char **argv)
     {
         destroyWorld();
         endGamePlayer();
+        endGameProjectiles();
+        endGameMeteors();
     }
 
     return 0;

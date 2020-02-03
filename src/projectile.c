@@ -31,10 +31,6 @@ void initProjectiles()
 
 bool collision(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
-    /*static float size[3] = {WORLDX, WORLDY, WORLDZ};
-    for (int i = 0; i < 3; i++)
-        if ((int)pos[i] < 0 || (int)pos[i] >= size[i])
-            return false;*/
     if (x < 0 || x > WORLDX || y < 0 || y > WORLDY || z < 0 || z > WORLDZ)
         return false;
     if (world[(int)x][(int)y][(int)z] > 0)
@@ -196,7 +192,7 @@ void freeProjectile(void* obj)
     free(obj);
 }
 
-void endGame()
+void endGameProjectiles()
 {
     objs = listClear(objs, &freeProjectile);
 }
