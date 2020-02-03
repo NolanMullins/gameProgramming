@@ -29,16 +29,16 @@ void initMeteors()
     timer = 0;
 }
 
-#define HV_RANGE 3
+#define H_RANGE 12
 void createMeteor()
 {
     Meteor* m = malloc(sizeof(Meteor));
     m->pos[X] = rand()%WORLDX;
     m->pos[Y] = WORLDY-TAIL_SIZE-1;
     m->pos[Z] = rand()%WORLDZ;
-    m->velocity[X] = rand()%HV_RANGE-HV_RANGE/2.0;
+    m->velocity[X] = rand()%H_RANGE-H_RANGE/2.0;
     m->velocity[Y] = rand()%5-8.0;
-    m->velocity[Z] = rand()%HV_RANGE-HV_RANGE/2.0;
+    m->velocity[Z] = rand()%H_RANGE-H_RANGE/2.0;
     float unit[3];
     getUnitVector(unit, m->velocity);
     for (int a = 0; a < TAIL_SIZE; a++)
@@ -100,7 +100,18 @@ void updateMeteors(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
         }
         else if (checkCollisionMeteor(newPos, world))
         {
-            world[(int)m->pos[X]][(int)m->pos[Y]][(int)m->pos[Z]] = METEOR;
+            //Need to check 1 block down to see if it can be moved down after a collision detection
+            //This stems from my laggy tablet getting 4fps and sometimes moving the blocks slightly
+            //more than 1 block in an update
+            if (world[(int)m->pos[X]][(int)m->pos[Y]-1][(int)m->pos[Z]] == 0)
+            {
+                world[(int)m->pos[X]][(int)m->pos[Y]-1][(int)m->pos[Z]] = METEOR;
+            }
+            else
+            {
+                world[(int)m->pos[X]][(int)m->pos[Y]][(int)m->pos[Z]] = METEOR;
+            }
+            
             free(listRemove(meteors, a));
             a--;
         } 
