@@ -18,6 +18,7 @@
 #include "playerController.h"
 #include "projectile.h"
 #include "meteor.h"
+#include "utils.h"
 
 extern GLubyte world[WORLDX][WORLDY][WORLDZ];
 struct timespec currentTime;
@@ -167,19 +168,34 @@ void draw2D()
         //screenWidth, screenHeight;
         drawUI();
 
-        #define PIXEL 2
-        #define MAP_BUF PIXEL*10
+        if (displayMap == 0)
+            return;
+
+        //Small map in top right corner
+        int pixel = 2;
+        int startX = screenWidth - pixel*10 - WORLDX*pixel;
+        int startY = screenHeight - pixel*10 - WORLDZ*pixel;
+
+        //Large map that is displayed over the center of the screen
+        if (displayMap == 2)
+        {
+            pixel = (int)((float)(screenHeight/1.25)/(float)WORLDZ);
+            startX = (int)((float)screenWidth/2.0) - pixel*WORLDX/2;
+            startY = (int)((float)screenHeight/2.0) - pixel*WORLDZ/2;
+        }
+
         int map[WORLDX][WORLDZ];
         float player[3];
         getPlayerPos(player);
         computeMiniMap(map, world);
+
         //Draw minimap
         for (int x = 0; x < WORLDX; x++)
         {
-            int screenX = screenWidth - MAP_BUF - WORLDX*PIXEL + x*PIXEL;
+            int screenX = startX + x*pixel;
             for(int y = 0; y < WORLDZ; y++)
             {
-                int screenY = screenHeight - MAP_BUF - WORLDZ*PIXEL + y*PIXEL;
+                int screenY = startY + y*pixel;
                 float r,g,b,a,dr,dg,db,da;
                 r=g=b=dr=dg=db=0;
                 a=1.0;
@@ -187,10 +203,19 @@ void draw2D()
                     getUserColour(map[x][y], &r, &g, &b, &a, &dr, &dg, &db, &da);
                 GLfloat col[] = {r,g,b,a};
                 set2Dcolour(col);
-                draw2Dbox(screenX,screenY,screenX+PIXEL,screenY+PIXEL);
+                draw2Dbox(screenX,screenY,screenX+pixel,screenY+pixel);
             }
         }
-        //draw2Dbox(screenWidth-100-10, screenHeight-100-10, screenWidth-10, screenHeight-10);
+        GLfloat col[] = {0.0,0.0,0.0,1.0};
+        set2Dcolour(col);
+        float pos[3];
+        getPlayerPos(pos);
+        if (-(int)pos[X] > 9)
+            drawNumber(-(int)pos[X]/10%10, startX+0*pixel*4, startY-6*pixel, pixel);
+        drawNumber(-(int)pos[X]%10, startX+1*pixel*4, startY-6*pixel, pixel);
+        if (-(int)pos[Z] > 9)
+            drawNumber(-(int)pos[Z]/10%10, startX+2*pixel*4+3*pixel, startY-6*pixel, pixel);
+        drawNumber(-(int)pos[Z]%10, startX+3*pixel*4+3*pixel, startY-6*pixel, pixel);
     }
 }
 

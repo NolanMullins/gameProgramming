@@ -10,4 +10,6 @@
 
 void getUnitVector(float unitVec[3], float vec[3]);
 
+void drawNumber(int digit, int screenX, int screenY, int pixelSize);
+
 #endif
