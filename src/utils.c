@@ -78,7 +78,7 @@ int nine[15] = { 0,0,1,
 int* digits[] ={zero, one, two, three, four, five, six, seven, eight, nine};
 void drawNumber(int digit, int screenX, int screenY, int pixelSize)
 {
-    if (digit > 9)
+    if (digit > 9 || digit < 0)
         return;
     for (int a = 0; a < 5; a++)
         for (int b = 0; b < 3; b++)
