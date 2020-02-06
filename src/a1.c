@@ -184,11 +184,19 @@ void draw2D()
             startY = (int)((float)screenHeight/2.0) - pixel*WORLDZ/2;
         }
 
+
         int map[WORLDX][WORLDZ];
         float player[3];
         getPlayerPos(player);
         computeMiniMap(map, world);
 
+        //Draw frame
+        GLfloat black[] = {0,0,0,1.0};
+        set2Dcolour(black);
+        draw2Dline(startX, startY-1, startX, startY+WORLDZ*pixel, 1);
+        draw2Dline(startX, startY+WORLDZ*pixel, startX+WORLDX*pixel, startY+WORLDZ*pixel, 1);
+        draw2Dline(startX+WORLDX*pixel, startY+WORLDZ*pixel, startX+WORLDX*pixel, startY, 1);
+        draw2Dline(startX+WORLDX*pixel, startY, startX-1, startY, 1);
         //Draw minimap
         for (int x = 0; x < WORLDX; x++)
         {

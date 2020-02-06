@@ -29,25 +29,7 @@ void initMeteors()
     timer = 0;
 }
 
-#define H_RANGE 12
-void createMeteor()
-{
-    Meteor* m = malloc(sizeof(Meteor));
-    m->pos[X] = rand()%WORLDX;
-    m->pos[Y] = WORLDY-TAIL_SIZE-1;
-    m->pos[Z] = rand()%WORLDZ;
-    m->velocity[X] = rand()%H_RANGE-H_RANGE/2.0;
-    m->velocity[Y] = rand()%5-8.0;
-    m->velocity[Z] = rand()%H_RANGE-H_RANGE/2.0;
-    float unit[3];
-    getUnitVector(unit, m->velocity);
-    for (int a = 0; a < TAIL_SIZE; a++)
-        for (int b = 0; b < 3; b++)
-            m->prevPos[a][b] = m->pos[b] - (a+1)*unit[b];
-    listAdd(meteors, m);
-}
-
-bool checkBoundsMeteor(float pos[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
+bool checkBoundsMeteor(float pos[3])
 {
     static int sizes[3] = {WORLDX, WORLDY, WORLDZ};
     for (int a = 0; a < 3; a++)
@@ -64,6 +46,46 @@ bool checkCollisionMeteor(float pos[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
     if (block != 0)
         return true;
     return false;
+}
+
+#define H_RANGE 16
+void createMeteor()
+{
+    Meteor* m = malloc(sizeof(Meteor));
+    bool found = false;
+    int i = 0; 
+    float x,y,z,vx,vy,vz;
+    while (!found && i++ < 50)
+    {
+        x = rand()%WORLDX;
+        y = WORLDY-TAIL_SIZE-1;
+        z = rand()%WORLDZ;
+        vx = rand()%H_RANGE-H_RANGE/2.0;
+        vy = rand()%5-8.0;
+        vz = rand()%H_RANGE-H_RANGE/2.0;
+        float intercept[3];
+        intercept[X] = x;
+        intercept[Y] = y;
+        intercept[Z] = z;
+        float scale = (y - GROUND_LEVEL - 2) / (-1.0*vy);
+        intercept[X] += vx*scale;
+        intercept[Y] += vy*scale;
+        intercept[Z] += vz*scale;
+        if (!checkBoundsMeteor(intercept))
+            break;
+    }
+    m->pos[X] = x;
+    m->pos[Y] = y;
+    m->pos[Z] = z;
+    m->velocity[X] = vx;
+    m->velocity[Y] = vy;
+    m->velocity[Z] = vz;
+    float unit[3];
+    getUnitVector(unit, m->velocity);
+    for (int a = 0; a < TAIL_SIZE; a++)
+        for (int b = 0; b < 3; b++)
+            m->prevPos[a][b] = m->pos[b] - (a+1)*unit[b];
+    listAdd(meteors, m);
 }
 
 void updateMeteors(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
@@ -93,7 +115,7 @@ void updateMeteors(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
         newPos[X] += m->velocity[X] * deltaTime;
         newPos[Y] += m->velocity[Y] * deltaTime;
         newPos[Z] += m->velocity[Z] * deltaTime;
-        if (checkBoundsMeteor(newPos, world))
+        if (checkBoundsMeteor(newPos))
         {
             free(listRemove(meteors, a));
             a--;
@@ -129,9 +151,9 @@ void updateMeteors(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
         for (int a = 0; a < TAIL_SIZE; a++)
             for (int b = 0; b < 3; b++)
                 m->prevPos[a][b] = m->pos[b] - (a+1)*unit[b];
-        world[(int)m->pos[X]][(int)m->pos[Y]][(int)m->pos[Z]] = METEOR;
         for (int a = 0; a < 3; a++)
             world[(int)m->prevPos[a][X]][(int)m->prevPos[a][Y]][(int)m->prevPos[a][Z]] = TAIL+a;
+        world[(int)m->pos[X]][(int)m->pos[Y]][(int)m->pos[Z]] = METEOR;
     }
 }
 

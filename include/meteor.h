@@ -13,7 +13,7 @@
 #include "list.h"
 
 #define INIT_METEORS 30
-#define METEOR_WAVE 10
+#define METEOR_WAVE 30
 #define METEOR_WAVE_SIZE 10
 #define TAIL_SIZE 3
 

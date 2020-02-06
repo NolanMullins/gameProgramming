@@ -12,6 +12,8 @@
 #include "world.h"
 #include "list.h"
 
+#define APPLY_GRAVITY 0
+
 typedef struct projectile
 {
     int type;

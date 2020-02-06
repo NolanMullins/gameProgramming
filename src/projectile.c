@@ -74,9 +74,7 @@ bool getCollision(float pos[3], float vel[3], float collision[3], GLubyte world[
 {
     memset(collision, 0, sizeof(int)*3);
     memcpy(collision, pos, sizeof(float)*3);
-    //Check if the block is empty
-    //if (collisionHelper(collision, world))
-        //return true;
+
     for (int i = 0; i < 3; i++)
         collision[i] -= vel[i]*deltaTime - 0.5;
     for (int a = 0; a < RES; a++)
@@ -86,17 +84,6 @@ bool getCollision(float pos[3], float vel[3], float collision[3], GLubyte world[
         if (collisionHelper(collision, world))
             return true;
     }
-    /*#define rad 0.25
-    for (int i = 0; i < 3; i++)
-    {
-        collision[i] += rad;
-        if (collisionHelper(collision, world))
-            return true;
-        collision[i] -= 2*rad;
-        if (collisionHelper(collision, world))
-            return true;
-        collision[i] += rad;
-    }*/
     return false;
 }
 
@@ -149,7 +136,8 @@ void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
         obj->pos[X] += obj->velocity[X] * deltaTime;
         obj->pos[Y] += obj->velocity[Y] * deltaTime;
         obj->pos[Z] += obj->velocity[Z] * deltaTime;
-        obj->velocity[Y] -= GRAVITY * deltaTime;
+        if (APPLY_GRAVITY)
+            obj->velocity[Y] -= GRAVITY * deltaTime;
 
         //Check to see if its in the world bounds
         float c[3];
