@@ -15,9 +15,10 @@
 
 #include "graphics.h"
 #include "world.h"
+#include "utils.h"
 #include "projectile.h"
 
-List* objs;
+List* projectiles;
 
 extern void createMob(int, float, float, float, float);
 extern void setMobPosition(int, float, float, float, float);
@@ -26,16 +27,7 @@ extern void showMob(int);
 
 void initProjectiles()
 {
-    objs = initList();
-}
-
-bool collision(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ])
-{
-    if (x < 0 || x > WORLDX || y < 0 || y > WORLDY || z < 0 || z > WORLDZ)
-        return false;
-    if (world[(int)x][(int)y][(int)z] > 0)
-        return true;
-    return false;
+    projectiles = initList();
 }
 
 bool collisionHelper(float pos[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
@@ -95,9 +87,9 @@ int getAvailableID()
     {
         id++;
         inUse = false;
-        for (int i = 0; i < listSize(objs); i++)
+        for (int i = 0; i < listSize(projectiles); i++)
         {
-            if (((Projectile*)listGet(objs, i))->id == id)
+            if (((Projectile*)listGet(projectiles, i))->id == id)
             {
                 inUse = true;
                 break;
@@ -124,15 +116,15 @@ void createProjectile(int type, float spawnLocation[3], float velocity[3])
     obj->id = id;
     createMob(id, obj->pos[X], obj->pos[Y], obj->pos[Z], 0);
     showMob(id);
-    listAdd(objs, obj);
+    listAdd(projectiles, obj);
 }
 
 void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     int i = -1;
-    while (++i < listSize(objs))
+    while (++i < listSize(projectiles))
     {
-        Projectile* obj = (Projectile*)listGet(objs, i);
+        Projectile* obj = (Projectile*)listGet(projectiles, i);
         obj->pos[X] += obj->velocity[X] * deltaTime;
         obj->pos[Y] += obj->velocity[Y] * deltaTime;
         obj->pos[Z] += obj->velocity[Z] * deltaTime;
@@ -141,38 +133,37 @@ void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 
         //Check to see if its in the world bounds
         float c[3];
-        if (obj->pos[X] >= WORLDX || obj->pos[Y] >= WORLDY || obj->pos[Z] >= WORLDZ ||
-        obj->pos[X] < 0 || obj->pos[Y] < 0 || obj->pos[Z] < 0)
+        if (!inBoundsV(obj->pos))
         {
             hideMob(obj->id);
-            free(listRemove(objs, i));
+            free(listRemove(projectiles, i));
             i--;
         }
         else if (getCollision(obj->pos, obj->velocity, c, world, deltaTime))
         {
-            int block = world[(int)c[X]][(int)c[Y]][(int)c[Z]];
-            if (block != BASEA && block != BASEB)
-                world[(int)c[X]][(int)c[Y]][(int)c[Z]] = 0;
+            int block = getWorldBlockF(c, world);
+            //int block = world[(int)c[X]][(int)c[Y]][(int)c[Z]];
+            //if (block != BASEA && block != BASEB)
+                //world[(int)c[X]][(int)c[Y]][(int)c[Z]] = 0;
             hideMob(obj->id);
-            free(listRemove(objs, i));
+            free(listRemove(projectiles, i));
             i--;
         }
         else
         {
             setMobPosition(obj->id, obj->pos[X], obj->pos[Y], obj->pos[Z], 0);
         }
-        
     }
 }
 
 List* getProjectiles()
 {
-    return objs;
+    return projectiles;
 }
 
 int getNumberOfActiveProjectiles()
 {
-    return listSize(objs);
+    return listSize(projectiles);
 }
 
 void freeProjectile(void* obj)
@@ -182,5 +173,5 @@ void freeProjectile(void* obj)
 
 void endGameProjectiles()
 {
-    objs = listClear(objs, &freeProjectile);
+    projectiles = listClear(projectiles, &freeProjectile);
 }

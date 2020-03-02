@@ -14,6 +14,7 @@
 #include "graphics.h"
 #include "world.h"
 #include "list.h"
+#include "utils.h"
 
 #define BASE_PADDING 10
 //30 hills, 20 valley
@@ -23,7 +24,7 @@
 List* clouds;
 
 void generateBase(int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ], int block) {
-    for (int y = GROUND_LEVEL+1; y < GROUND_LEVEL+4; y++)
+    for (int y = GROUND_LEVEL+1; y < GROUND_LEVEL+5; y++)
         for (int i = x-2; i <= x+2; i++)
             for (int j = z-2; j <= z+2; j++)
                 world[i][y][j] = block;
@@ -171,7 +172,11 @@ void generateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ])
     //Randomly place the bases in opposite corners
     int x = rand()%10+8;
     int z = rand()%20+30;
+
+    setVector(x,GROUND_LEVEL+1, z, baseAPos);
     generateBase(x, z, world, BASEA);
+
+    setVector(100-x-1, GROUND_LEVEL+1, 99-z, baseBPos);
     generateBase(100-x-1, 99-z, world, BASEB);
 
     int numHills = rand()%15+HILL_COUNT;
@@ -225,6 +230,13 @@ void updateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ], double deltaTime)
                     else
                         world[c->location[X]+cloudX][CLOUD_HEIGHT][c->location[Z]+cloudZ] = CLOUD;
     }
+}
+
+float* getBasePos(int team)
+{
+    if (team==0)
+        return baseAPos;
+    return baseBPos;
 }
 
 void freeCloud(void* cloud)

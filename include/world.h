@@ -28,10 +28,14 @@ typedef struct cloud
     int shape[CLOUD_WIDTH][CLOUD_LENGTH];
 } Cloud;
 
+float baseAPos[3];
+float baseBPos[3];
+
 void initWorld(GLubyte world[WORLDX][WORLDY][WORLDZ]);
 void updateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ], double deltaTime);
 void destroyWorld();
 void generateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ]);
+float* getBasePos(int team);
 
 
 #endif

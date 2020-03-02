@@ -13,12 +13,13 @@
 #include <math.h>
 #include <time.h>
 
+#include "utils.h"
 #include "graphics.h"
 #include "world.h"
 #include "playerController.h"
 #include "projectile.h"
 #include "meteor.h"
-#include "utils.h"
+#include "vehicle.h"
 
 extern GLubyte world[WORLDX][WORLDY][WORLDZ];
 struct timespec currentTime;
@@ -356,7 +357,7 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
         updatePlayerPosition(curr, view, f, l, r, b, world, delta);
         updateMeteors(world, delta);
         updateProjectiles(world, delta);
-        //updatePlayer(prev, curr, world);
+        updateVehicles(world, delta);
         setViewPosition(curr[0], curr[1], curr[2]);
     }
 }
@@ -443,15 +444,15 @@ int main(int argc, char **argv)
         //Cloud
         setUserColour(CLOUD, 0.9, 0.9, 0.8, 0.5, 0.2, 0.2, 0.2, 0.5);
 
-        //setUserColour(BASEA, 214.0/255.0, 84.0/255.0, 99.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
-        //setUserColour(BASEB, 89.0/255.0, 179.0/255.0, 109.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
-        setUserColour(BASEA, 214.0/255.0, 130.0/255.0, 45.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
-        setUserColour(BASEB, 100.0/255.0, 160.0/255.0, 179.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
-
         setUserColour(METEOR, 10.0/255.0, 10.0/255.0, 10.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
         setUserColour(TAIL, 214.0/255.0, 21.0/255.0, 3.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
         setUserColour(TAIL+1, 252.0/255.0, 94.0/255.0, 1.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
         setUserColour(TAIL+2, 200.0/255.0, 200.0/255.0, 200.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+
+        setUserColour(BASEA, 140.0/255.0, 25.0/255.0, 19.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+        setUserColour(BASEB, 36.0/255.0, 104.0/255.0, 149.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+        setUserColour(VEHICLE_A, 112.0/255.0, 14.0/255.0, 11.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+        setUserColour(VEHICLE_B, 5.0/255.0, 69.0/255.0, 109.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
 
         float inc = 0.02;
         //Green hill
@@ -470,6 +471,7 @@ int main(int argc, char **argv)
         setViewPosition(spawn[0], spawn[1], spawn[2]);
         initProjectiles();
         initMeteors();
+        initVehicles();
     }
 
     //Record initial time
@@ -485,6 +487,7 @@ int main(int argc, char **argv)
         endGamePlayer();
         endGameProjectiles();
         endGameMeteors();
+        endGameVehicles();
     }
 
     return 0;

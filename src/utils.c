@@ -6,7 +6,10 @@
  ****************************************/
 
 #include <math.h>
+#include <stdio.h>
+
 #include "graphics.h"
+#include "utils.h"
 
 extern void draw2Dline(int, int, int, int, int);
 extern void draw2Dbox(int, int, int, int);
@@ -19,6 +22,60 @@ void getUnitVector(float unitVec[3], float vec[3])
     for (int i = 0; i < 3; i++)
         unitVec[i] = vec[i]/l; 
 }
+
+void setVector(float x, float y, float z, float vec[3])
+{
+    vec[0] = x;
+    vec[1] = y;
+    vec[2] = z;
+}
+
+bool inBoundsV(float pos[3])
+{
+    return inBounds(pos[X], pos[Y], pos[Z]);
+}
+
+bool inBounds(float x, float y, float z)
+{
+    if ((int)x < 0 || (int)x > WORLDX || (int)y < 0 || (int)y > WORLDY || (int)z < 0 || (int)z > WORLDZ)
+        return false;
+    return true;
+}
+
+bool collisionV(float pos[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+    return collision(pos[X], pos[Y], pos[Z], world);
+}
+
+bool collision(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+    if (!inBounds(x,y,z))
+        return false;
+    if (world[(int)x][(int)y][(int)z] > 0)
+        return true;
+    return false;
+}
+
+int getWorldBlockF(float loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+    return world[(int)loc[X]][(int)loc[Y]][(int)loc[Z]];
+}
+
+int getWorldBlock(int loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+    return world[loc[X]][loc[Y]][loc[Z]];
+}
+
+void setWorldBlockF(float loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ], int block)
+{
+    world[(int)loc[X]][(int)loc[Y]][(int)loc[Z]] = block;
+}
+
+void setWorldBlock(int loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ], int block)
+{
+    world[loc[X]][loc[Y]][loc[Z]] = block;
+}
+
 
 void drawPixel(int x, int y, int size)
 {
