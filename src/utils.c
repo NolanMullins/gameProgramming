@@ -16,9 +16,20 @@ extern void draw2Dbox(int, int, int, int);
 extern void draw2Dtriangle(int, int, int, int, int, int);
 extern void set2Dcolour(float[]);
 
+
+void printVector(float vec[3])
+{
+    printf("%.1f %.1f %.1f\n", vec[0], vec[1], vec[2]);
+}
+
+float vectorLength(float vec[3])
+{
+    return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
+}
+
 void getUnitVector(float unitVec[3], float vec[3])
 {
-    float l = sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
+    float l = vectorLength(vec);
     for (int i = 0; i < 3; i++)
         unitVec[i] = vec[i]/l; 
 }

@@ -12,8 +12,11 @@
 #include "graphics.h"
 #include "world.h"
 
+float vectorLength(float vec[3]);
 void getUnitVector(float unitVec[3], float vec[3]);
 void setVector(float x, float y, float z, float vec[3]);
+
+void printVector(float vec[3]);
 
 bool inBoundsV(float pos[3]);
 bool inBounds(float x, float y, float z);

@@ -12,18 +12,18 @@
 #include "world.h"
 #include "list.h"
 
-#define VEHICLE_VEL 3
+#define VEHICLE_VEL 1
 
 typedef struct vehicle
 {
     int team;
-    int id;
+    //int id;
     int state;
-    int dest[3];
+    float dest[3];
     float front[3];
     float mid[3];
     float back[3];
-    //float velocity[3];
+    float move[3];
 } Vehicle;
 
 void initVehicles();
