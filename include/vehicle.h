@@ -12,7 +12,7 @@
 #include "world.h"
 #include "list.h"
 
-#define VEHICLE_VEL 1
+#define VEHICLE_VEL 3
 
 typedef struct vehicle
 {

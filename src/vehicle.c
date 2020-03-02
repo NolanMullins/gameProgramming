@@ -44,7 +44,8 @@ void createVehicle(int team)
     v->front[X] += 3*direction;
     v->front[Y] += 0.5f;
     v->front[Z] += 0;
-    v->dest[X] += 12*direction;
+    //6 blocks away from center of 
+    v->dest[X] += 40*direction;
     v->team = team;
     listAdd(vehicles, v);
 }
@@ -64,11 +65,15 @@ void moveVehicleToDest(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float 
     v->move[Z] += unitDirection[Z]; 
     if (vectorLength(v->move) >= 1) {
         getUnitVector(v->move, v->move);
-        //might need to set the move length to be exactly 1
         memcpy(v->back, v->mid, sizeof(float)*3);
         memcpy(v->mid, v->front, sizeof(float)*3);
         v->front[X] += v->move[X]; 
         v->front[Z] += v->move[Z]; 
+        //Need to handle the case where it can fall more than one block
+        if (world[(int)v->front[X]][(int)(v->front[Y]-1.0)][(int)v->front[Z]]==0)
+            v->front[Y] -= 1.0;
+        else if (collisionV(v->front, world))
+            v->front[Y] += 1.0; 
         memset(v->move, 0, sizeof(float)*3);
     }
 }
