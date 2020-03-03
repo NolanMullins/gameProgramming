@@ -34,6 +34,20 @@ void initVehicles()
     vehicles = initList();
     createVehicle(0);
     createVehicle(1);
+    createVehicle(0);
+    createVehicle(1);
+    createVehicle(0);
+    createVehicle(1);
+    createVehicle(0);
+    createVehicle(1);
+    createVehicle(0);
+    createVehicle(1);
+    createVehicle(0);
+    createVehicle(1);
+    createVehicle(0);
+    createVehicle(1);
+    createVehicle(0);
+    createVehicle(1);
 }
 
 void createVehicle(int team)
@@ -44,6 +58,7 @@ void createVehicle(int team)
     memset(v->mid, 0, sizeof(float)*3);
     memset(v->back, 0, sizeof(float)*3);
     memset(v->move, 0, sizeof(float)*3);
+    v->hasBlock = false;
     v->mid[X]=-1;
     v->back[X]=-1;
     v->state = 0;
@@ -51,7 +66,7 @@ void createVehicle(int team)
     if (team==1)
         direction = -1;
     v->front[X] += 3*direction;
-    v->front[Y] += 0.5f;
+    v->front[Y] += 0;
     v->front[Z] += 0;
     //6 blocks away from center of 
     v->dest[X] += 6*direction;
@@ -135,27 +150,51 @@ void state0Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
 void state1Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     //Check if meteors is still there
-    //todo
+    if (getWorldBlockF(v->dest, world) != METEOR) {
+        v->state = 0;
+        generateRandomCord(v->dest);
+        return;
+    }
 
     //Move vehicle towards meteor
     float dist = moveVehicleToDest(v, world, deltaTime);
 
     //Is it at meteor?
-    //todo
-
+    if (dist < 1.51) {
+        v->state = 2;
+        v->loadTime = VEHICLE_LOAD_TIME;
+    }
 }
 
 //Load meteor
 void state2Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     //Check if meteor is still there
-    //todo 
+    if (getWorldBlockF(v->dest, world) != METEOR) {
+        v->state = 0;
+        generateRandomCord(v->dest);
+        return;
+    }
 
     //Update load clock
-    //todo
+    v->loadTime -= deltaTime;
 
     //Are we done loading?
-    //todo
+    if (v->loadTime <= 0) {
+        List* grounded = getGroundedMeteors();
+        int numMeteors = listSize(grounded);
+        for (int a = 0; a < numMeteors; a++) {
+            GroundedMeteor* m = (GroundedMeteor*)listGet(grounded, a);
+            if ((int)m->pos[X] == (int)v->dest[X] && (int)m->pos[Z] == (int)v->dest[Z]) {
+                free(listRemove(grounded, a));
+                break;
+            }
+        }
+        setWorldBlockF(v->dest, world, 0);
+        memcpy(v->dest, getBasePos(v->team), sizeof(float)*3);
+        v->state = 3;
+        v->hasBlock = true;
+    }
 }
 
 //Return to base
@@ -165,7 +204,11 @@ void state3Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
     float dist = moveVehicleToDest(v, world, deltaTime);
 
     //Are we at the base yet?
-    //todo
+    if (dist < 3.0) {
+        v->hasBlock = false;
+        v->state = 0;
+        generateRandomCord(v->dest);
+    }
 }
 
 void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
@@ -184,10 +227,11 @@ void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
             setWorldBlockF(v->mid, world, 0);
         if (inBoundsV(v->back))
             setWorldBlockF(v->back, world, 0);
+        if (v->hasBlock)
+            world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = 0;
 
         //Update state
         (*stateFunctions[v->state])(v, world, deltaTime);
-
 
         //Draw vehicle
         setWorldBlockF(v->front, world, blockType);
@@ -195,11 +239,8 @@ void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
             setWorldBlockF(v->mid, world, blockType);
         if (inBoundsV(v->back))
             setWorldBlockF(v->back, world, blockType);
-        /*
-        obj->pos[X] += obj->velocity[X] * deltaTime;
-        obj->pos[Y] += obj->velocity[Y] * deltaTime;
-        obj->pos[Z] += obj->velocity[Z] * deltaTime;
-        */
+        if (v->hasBlock)
+            world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = METEOR;
     }
 }
 

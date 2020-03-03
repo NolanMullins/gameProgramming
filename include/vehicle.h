@@ -12,7 +12,8 @@
 #include "world.h"
 #include "list.h"
 
-#define VEHICLE_VEL 10
+#define VEHICLE_VEL 8
+#define VEHICLE_LOAD_TIME 3.0
 
 typedef struct vehicle
 {
@@ -24,6 +25,8 @@ typedef struct vehicle
     float mid[3];
     float back[3];
     float move[3];
+    float loadTime;
+    bool hasBlock;
 } Vehicle;
 
 void initVehicles();

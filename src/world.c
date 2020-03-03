@@ -173,10 +173,10 @@ void generateWorld(GLubyte world[WORLDX][WORLDY][WORLDZ])
     int x = rand()%10+8;
     int z = rand()%20+30;
 
-    setVector(x,GROUND_LEVEL+1, z, baseAPos);
+    setVector(x+0.5f,GROUND_LEVEL+1+0.5f, z+0.5f, baseAPos);
     generateBase(x, z, world, BASEA);
 
-    setVector(100-x-1, GROUND_LEVEL+1, 99-z, baseBPos);
+    setVector(100-x-1+0.5f, GROUND_LEVEL+1+0.5f, 99-z+0.5f, baseBPos);
     generateBase(100-x-1, 99-z, world, BASEB);
 
     int numHills = rand()%15+HILL_COUNT;
