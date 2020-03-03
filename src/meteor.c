@@ -19,11 +19,13 @@
 #include "meteor.h"
 
 List* meteors;
+List* grounded;
 float timer;
 
 void initMeteors()
 {
     meteors = initList();
+    grounded = initList();
     for (int a = 0; a < INIT_METEORS; a++)
         createMeteor();
     timer = 0;
@@ -125,15 +127,15 @@ void updateMeteors(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
             //Need to check 1 block down to see if it can be moved down after a collision detection
             //This stems from my laggy tablet getting 4fps and sometimes moving the blocks slightly
             //more than 1 block in an update
-            if (world[(int)m->pos[X]][(int)m->pos[Y]-1][(int)m->pos[Z]] == 0)
-            {
-                world[(int)m->pos[X]][(int)m->pos[Y]-1][(int)m->pos[Z]] = METEOR;
-            }
-            else
-            {
-                world[(int)m->pos[X]][(int)m->pos[Y]][(int)m->pos[Z]] = METEOR;
-            }
-            
+            int x = (int)m->pos[X];
+            int y = (int)m->pos[Y];
+            int z = (int)m->pos[Z];
+            if (world[x][y-1][z] == 0)
+                y--;
+            world[x][y][z] = METEOR;
+            GroundedMeteor* gm = malloc(sizeof(GroundedMeteor));
+            setVector(x+0.5f,y+0.5f,z+0.5f, gm->pos);
+            listAdd(grounded, gm);
             free(listRemove(meteors, a));
             a--;
         } 
@@ -157,6 +159,11 @@ void updateMeteors(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
     }
 }
 
+List* getGroundedMeteors()
+{
+    return grounded;
+}
+
 List* getMeteors()
 {
     return meteors;
@@ -175,4 +182,5 @@ void freeMeteor(void* obj)
 void endGameMeteors()
 {
     meteors = listClear(meteors, &freeMeteor);
+    grounded = listClear(grounded, &freeMeteor);
 }

@@ -17,23 +17,22 @@
 #include "world.h"
 #include "utils.h"
 #include "vehicle.h"
+#include "meteor.h"
 
 List* vehicles;
+//todo
+void (*stateFunctions[4]) (Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);
 
 void initVehicles()
 {
+    //set fnc pointers
+    stateFunctions[0] = state0Update;
+    stateFunctions[1] = state1Update;
+    stateFunctions[2] = state2Update;
+    stateFunctions[3] = state3Update;
+
     vehicles = initList();
     createVehicle(0);
-    createVehicle(0);
-    createVehicle(0);
-    createVehicle(0);
-    createVehicle(0);
-    createVehicle(0);
-    createVehicle(1);
-    createVehicle(1);
-    createVehicle(1);
-    createVehicle(1);
-    createVehicle(1);
     createVehicle(1);
 }
 
@@ -47,7 +46,7 @@ void createVehicle(int team)
     memset(v->move, 0, sizeof(float)*3);
     v->mid[X]=-1;
     v->back[X]=-1;
-    v->state = -1;
+    v->state = 0;
     int direction = 1;
     if (team==1)
         direction = -1;
@@ -113,6 +112,62 @@ void generateRandomCord(float dest[3])
     dest[Z] = rand()%(WORLDZ-10)+5;
 }
 
+//Search for meteors
+void state0Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
+{
+    List* grounded = getGroundedMeteors();
+    int numMeteors = listSize(grounded);
+    for (int a = 0; a < numMeteors; a++) {
+        GroundedMeteor* m = (GroundedMeteor*)listGet(grounded, a);
+        if (distanceVector(v->front, m->pos) <= 10) {
+            memcpy(v->dest, m->pos, sizeof(float)*3);
+            v->state = 1;
+            return;
+        }
+    }
+    float dist = moveVehicleToDest(v, world, deltaTime);
+    //Move vehicle
+    if (dist < 0.5)
+        generateRandomCord(v->dest);
+}
+
+//Move towards meteors
+void state1Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
+{
+    //Check if meteors is still there
+    //todo
+
+    //Move vehicle towards meteor
+    float dist = moveVehicleToDest(v, world, deltaTime);
+
+    //Is it at meteor?
+    //todo
+
+}
+
+//Load meteor
+void state2Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
+{
+    //Check if meteor is still there
+    //todo 
+
+    //Update load clock
+    //todo
+
+    //Are we done loading?
+    //todo
+}
+
+//Return to base
+void state3Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
+{
+    //move towards base
+    float dist = moveVehicleToDest(v, world, deltaTime);
+
+    //Are we at the base yet?
+    //todo
+}
+
 void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     int i = -1;
@@ -130,10 +185,9 @@ void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
         if (inBoundsV(v->back))
             setWorldBlockF(v->back, world, 0);
 
-        //Move vehicle
-        float dist = moveVehicleToDest(v, world, deltaTime);
-        if (dist < 0.5)
-            generateRandomCord(v->dest);
+        //Update state
+        (*stateFunctions[v->state])(v, world, deltaTime);
+
 
         //Draw vehicle
         setWorldBlockF(v->front, world, blockType);

@@ -11,10 +11,12 @@
 #include <stdbool.h>
 #include "graphics.h"
 #include "world.h"
+#include "list.h"
 
 float vectorLength(float vec[3]);
 void getUnitVector(float unitVec[3], float vec[3]);
 void setVector(float x, float y, float z, float vec[3]);
+float distanceVector(float a[3], float b[3]);
 
 void printVector(float vec[3]);
 

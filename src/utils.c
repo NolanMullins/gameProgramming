@@ -41,6 +41,14 @@ void setVector(float x, float y, float z, float vec[3])
     vec[2] = z;
 }
 
+float distanceVector(float a[3], float b[3])
+{
+    float c[3];
+    for (int i = 0; i < 3; i++)
+        c[i] = a[i] - b[i];
+    return vectorLength(c);
+}
+
 bool inBoundsV(float pos[3])
 {
     return inBounds(pos[X], pos[Y], pos[Z]);

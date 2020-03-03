@@ -24,10 +24,16 @@ typedef struct meteor
     float velocity[3];
 } Meteor;
 
+typedef struct groundedMeteor
+{
+    float pos[3];
+} GroundedMeteor;
+
 void initMeteors();
 void createMeteor();
 void updateMeteors(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);
 List* getMeteors();
+List* getGroundedMeteors();
 int getNumberOfActiveMeteors();
 void endGameMeteors();
 
