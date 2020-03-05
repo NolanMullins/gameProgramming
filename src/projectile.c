@@ -17,6 +17,7 @@
 #include "world.h"
 #include "utils.h"
 #include "projectile.h"
+#include "vehicle.h"
 
 List* projectiles;
 
@@ -142,6 +143,18 @@ void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
         else if (getCollision(obj->pos, obj->velocity, c, world, deltaTime))
         {
             int block = getWorldBlockF(c, world);
+
+            if (block == VEHICLE_A || block == VEHICLE_B) {
+                List* vehicles = getVehicles();
+                for (int a = 0; a < listSize(vehicles); a++) {
+                    Vehicle* v = (Vehicle*)listGet(vehicles, a);
+                    if (occupySameBlock(v->front, c) || occupySameBlock(v->mid, c) || occupySameBlock(v->back, c)) {
+                        damageVehicle(a, v, ProjectileDMG, world);
+                        break;
+                    }
+                }
+            }
+            //Remove block from the world
             //int block = world[(int)c[X]][(int)c[Y]][(int)c[Z]];
             //if (block != BASEA && block != BASEB)
                 //world[(int)c[X]][(int)c[Y]][(int)c[Z]] = 0;

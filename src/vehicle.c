@@ -46,8 +46,6 @@ void initVehicles()
     createVehicle(1);
     createVehicle(0);
     createVehicle(1);
-    createVehicle(0);
-    createVehicle(1);
 }
 
 void createVehicle(int team)
@@ -58,6 +56,7 @@ void createVehicle(int team)
     memset(v->mid, 0, sizeof(float)*3);
     memset(v->back, 0, sizeof(float)*3);
     memset(v->move, 0, sizeof(float)*3);
+    v->health = MaxVehicleHealth;
     v->hasBlock = false;
     v->mid[X]=-1;
     v->back[X]=-1;
@@ -72,6 +71,34 @@ void createVehicle(int team)
     v->dest[X] += 6*direction;
     v->team = team;
     listAdd(vehicles, v);
+}
+
+void damageVehicle(int index, Vehicle* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+    v->health -= dmg;
+    if (v->health <= 0) {
+        //undraw the vehicle
+        setWorldBlockF(v->front, world, 0);
+        if (inBoundsV(v->mid))
+            setWorldBlockF(v->mid, world, 0);
+        if (inBoundsV(v->back))
+            setWorldBlockF(v->back, world, 0); 
+        if (v->hasBlock) {
+            world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = 0;
+            setWorldBlockF(v->mid, world, METEOR);
+            List* gms = getGroundedMeteors();
+            GroundedMeteor* gm = malloc(sizeof(GroundedMeteor));
+            memcpy(gm->pos, v->mid, sizeof(float)*3);
+            listAdd(gms, gm);
+        }
+
+        //remove it from the world
+        listRemove(vehicles, index);
+        //Spawn a new one
+        createVehicle(v->team);
+        //Clean it up
+        free(v);
+    }
 }
 
 float moveVehicleToDest(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
@@ -98,8 +125,21 @@ float moveVehicleToDest(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float
         memcpy(v->back, v->mid, sizeof(float)*3);
         memcpy(v->mid, v->front, sizeof(float)*3);
 
+        int nextBlock = world[(int)(v->front[X] + v->move[X])][(int)(v->front[Y])][(int)(v->front[Z]+v->move[Z])];
+
+        //Check if running into a tower
+        if (nextBlock == TOWER_A || nextBlock == TOWER_B) {
+            //Side step block
+            double angle = atan(v->move[Z]/v->move[X]);
+            angle += 3.14159265/2.0;
+            v->move[X] = 1.0/tan(angle);
+            v->move[Z] = tan(angle);
+            getUnitVector(v->move, v->move);
+            v->front[X] += v->move[X];
+            v->front[Z] += v->move[Z];
+        }
         //Check if 2 blocks in front are occupied, start climbing
-        if (world[(int)(v->front[X] + v->move[X])][(int)(v->front[Y])][(int)(v->front[Z]+v->move[Z])] != 0) {
+        else if (nextBlock != 0) {
             //If we can move on top of block in front 
             if (world[(int)(v->front[X] + v->move[X])][(int)(v->front[Y]+1)][(int)(v->front[Z]+v->move[Z])] == 0) {
                 v->front[X] += v->move[X]; 
@@ -209,6 +249,9 @@ void state3Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
     adjacent[Z] += v->currDirection[Z];
     if (inBoundsV(adjacent)) {
         int adjacentBlock = world[(int)adjacent[X]][(int)adjacent[Y]][(int)adjacent[Z]];
+        //Check if vehicle is on top of the base
+        if (adjacentBlock == 0)
+            adjacentBlock = world[(int)adjacent[X]][(int)adjacent[Y]-1][(int)adjacent[Z]];
         if (v->team == 0 && adjacentBlock == BASEA) {
             v->hasBlock = false;
             v->state = 0;
@@ -218,10 +261,6 @@ void state3Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
             v->state = 0;
             generateRandomCord(v->dest);
         }
-    }
-
-    //Are we at the base yet?
-    if (dist < 3.0) {
     }
 }
 

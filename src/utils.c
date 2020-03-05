@@ -49,6 +49,14 @@ float distanceVector(float a[3], float b[3])
     return vectorLength(c);
 }
 
+bool occupySameBlock(float v1[3], float v2[3])
+{
+    for (int a = 0; a < 3; a ++)
+        if ((int)v1[a] != (int)v2[a])
+            return false;
+    return true;
+}
+
 bool inBoundsV(float pos[3])
 {
     return inBounds(pos[X], pos[Y], pos[Z]);

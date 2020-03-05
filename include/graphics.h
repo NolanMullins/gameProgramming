@@ -36,6 +36,9 @@
 #define VEHICLE_A 40
 #define VEHICLE_B 41
 
+#define TOWER_A 42
+#define TOWER_B 43
+
 /* list of cubes to draw with each screen update */
 #define MAX_DISPLAY_LIST 500000
 

@@ -20,6 +20,7 @@
 #include "projectile.h"
 #include "meteor.h"
 #include "vehicle.h"
+#include "tower.h"
 
 extern GLubyte world[WORLDX][WORLDY][WORLDZ];
 struct timespec currentTime;
@@ -357,6 +358,7 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
         updatePlayerPosition(curr, view, f, l, r, b, world, delta);
         updateMeteors(world, delta);
         updateProjectiles(world, delta);
+        updateTowers(world, delta);
         updateVehicles(world, delta);
         setViewPosition(curr[0], curr[1], curr[2]);
     }
@@ -453,6 +455,8 @@ int main(int argc, char **argv)
         setUserColour(BASEB, 36.0/255.0, 104.0/255.0, 149.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
         setUserColour(VEHICLE_A, 112.0/255.0, 14.0/255.0, 11.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
         setUserColour(VEHICLE_B, 5.0/255.0, 69.0/255.0, 109.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+        setUserColour(TOWER_A, 107.0/255.0, 58.0/255.0, 57.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+        setUserColour(TOWER_B, 39.0/255.0, 74.0/255.0, 96.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
 
         float inc = 0.02;
         //Green hill
@@ -472,6 +476,7 @@ int main(int argc, char **argv)
         initProjectiles();
         initMeteors();
         initVehicles();
+        initTowers(world);
     }
 
     //Record initial time
@@ -488,6 +493,7 @@ int main(int argc, char **argv)
         endGameProjectiles();
         endGameMeteors();
         endGameVehicles();
+        endGameTowers();
     }
 
     return 0;

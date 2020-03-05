@@ -15,10 +15,13 @@
 #define VEHICLE_VEL 8
 #define VEHICLE_LOAD_TIME 3.0
 
+#define MaxVehicleHealth 2
+#define ProjectileDMG 1
+
 typedef struct vehicle
 {
     int team;
-    //int id;
+    int health;
     int state;
     float dest[3];
     float currDirection[3];
@@ -33,6 +36,7 @@ typedef struct vehicle
 void initVehicles();
 void createVehicle(int team);
 void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);
+void damageVehicle(int index, Vehicle* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLDZ]);
 List* getVehicles();
 int getNumberOfActiveVehicles();
 void endGameVehicles();
