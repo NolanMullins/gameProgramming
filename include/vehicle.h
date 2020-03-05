@@ -21,6 +21,7 @@ typedef struct vehicle
     //int id;
     int state;
     float dest[3];
+    float currDirection[3];
     float front[3];
     float mid[3];
     float back[3];

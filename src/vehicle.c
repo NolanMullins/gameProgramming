@@ -86,6 +86,7 @@ float moveVehicleToDest(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float
         return 0;
 
     getUnitVector(unitDirection, direction);
+    memcpy(v->currDirection, unitDirection, sizeof(float)*3);
     unitDirection[X] *= VEHICLE_VEL * deltaTime;
     unitDirection[Z] *= VEHICLE_VEL * deltaTime;
     
@@ -202,12 +203,25 @@ void state3Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
 {
     //move towards base
     float dist = moveVehicleToDest(v, world, deltaTime);
+    float adjacent[3];
+    memcpy(adjacent, v->front, sizeof(float)*3);
+    adjacent[X] += v->currDirection[X];
+    adjacent[Z] += v->currDirection[Z];
+    if (inBoundsV(adjacent)) {
+        int adjacentBlock = world[(int)adjacent[X]][(int)adjacent[Y]][(int)adjacent[Z]];
+        if (v->team == 0 && adjacentBlock == BASEA) {
+            v->hasBlock = false;
+            v->state = 0;
+            generateRandomCord(v->dest);
+        } else if (v->team == 1 & adjacentBlock == BASEB) {
+            v->hasBlock = false;
+            v->state = 0;
+            generateRandomCord(v->dest);
+        }
+    }
 
     //Are we at the base yet?
     if (dist < 3.0) {
-        v->hasBlock = false;
-        v->state = 0;
-        generateRandomCord(v->dest);
     }
 }
 
