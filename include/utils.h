@@ -17,6 +17,7 @@ float vectorLength(float vec[3]);
 void getUnitVector(float unitVec[3], float vec[3]);
 void setVector(float x, float y, float z, float vec[3]);
 float distanceVector(float a[3], float b[3]);
+float distanceVector2D(float a[3], float b[3]);
 bool occupySameBlock(float v1[3], float v2[3]);
 
 void printVector(float vec[3]);

@@ -85,12 +85,19 @@ void damageVehicle(int index, Vehicle* v, int dmg, GLubyte world[WORLDX][WORLDY]
             setWorldBlockF(v->back, world, 0); 
         if (v->hasBlock) {
             world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = 0;
-            setWorldBlockF(v->mid, world, METEOR);
             List* gms = getGroundedMeteors();
             GroundedMeteor* gm = malloc(sizeof(GroundedMeteor));
             memcpy(gm->pos, v->mid, sizeof(float)*3);
+            gm->pos[Y] -= 1;
+            setWorldBlockF(gm->pos, world, METEOR);
             listAdd(gms, gm);
         }
+        //Create crater
+        for (int x = (int)v->mid[X]-1; x <= (int)v->mid[X]+1; x++)
+            for (int y = (int)v->mid[Y]-1; y <= (int)v->mid[Y]; y++)
+                for (int z = (int)v->mid[Z]-1; z <= (int)v->mid[Z]+1; z++)
+                    if (inBounds(x,y,z))
+                        world[x][y][z] = 0;
 
         //remove it from the world
         listRemove(vehicles, index);
@@ -175,10 +182,16 @@ void state0Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
     int numMeteors = listSize(grounded);
     for (int a = 0; a < numMeteors; a++) {
         GroundedMeteor* m = (GroundedMeteor*)listGet(grounded, a);
-        if (distanceVector(v->front, m->pos) <= 10) {
-            memcpy(v->dest, m->pos, sizeof(float)*3);
-            v->state = 1;
-            return;
+        if (getWorldBlockF(m->pos, world) == METEOR) {
+            if (distanceVector(v->front, m->pos) <= 10) {
+                memcpy(v->dest, m->pos, sizeof(float)*3);
+                v->state = 1;
+                return;
+            }
+        } else {
+            free(listRemove(grounded, a));
+            a--;
+            numMeteors--;
         }
     }
     float dist = moveVehicleToDest(v, world, deltaTime);

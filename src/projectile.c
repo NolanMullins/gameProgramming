@@ -102,13 +102,13 @@ int getAvailableID()
     return id;
 }
 
-void createProjectile(int type, float spawnLocation[3], float velocity[3])
+bool createProjectile(int type, float spawnLocation[3], float velocity[3])
 {
     int id = getAvailableID();
     if (id == -1)
     {
         printf("No space for more projectiles\n");
-        return;
+        return false;
     }
     Projectile* obj = malloc(sizeof(Projectile));
     memcpy(obj->pos, spawnLocation, sizeof(float)*3);
@@ -118,6 +118,7 @@ void createProjectile(int type, float spawnLocation[3], float velocity[3])
     createMob(id, obj->pos[X], obj->pos[Y], obj->pos[Z], 0);
     showMob(id);
     listAdd(projectiles, obj);
+    return true;
 }
 
 void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)

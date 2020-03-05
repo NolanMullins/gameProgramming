@@ -15,13 +15,15 @@
 #include "list.h"
 #include "vehicle.h"
 
-#define TOWER_COOL_DOWN 2
+#define TOWER_COOL_DOWN 2.0
 #define TOWER_HEIGHT 7
+#define TOWER_RANGE 20.0
+#define TOWER_PROJECTILE_SPEED 30
 
 typedef struct tower
 {
     int team;
-    int coolDown;
+    float coolDown;
     int pos[3];
     int aim[3];
 } Tower;

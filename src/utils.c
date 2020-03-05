@@ -49,6 +49,15 @@ float distanceVector(float a[3], float b[3])
     return vectorLength(c);
 }
 
+float distanceVector2D(float a[3], float b[3])
+{
+    float c[3];
+    c[0] = a[0]-b[0];
+    c[1] = 0;
+    c[2] = a[2]-b[2];
+    return vectorLength(c);
+}
+
 bool occupySameBlock(float v1[3], float v2[3])
 {
     for (int a = 0; a < 3; a ++)

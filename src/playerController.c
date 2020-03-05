@@ -133,6 +133,7 @@ void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, b
 
 void playerInput(int button, int state, int x, int y)
 {
+    /*
     if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
     {
         float x = sin(playerOrientation[1])*cos(playerOrientation[0]);
@@ -144,7 +145,7 @@ void playerInput(int button, int state, int x, int y)
         float location[3] = {-playerLocation[X], -playerLocation[Y], -playerLocation[Z]};
         createProjectile(0, location, velocity);
     }
-
+    */
     /*
     else if (button == GLUT_MIDDLE_BUTTON)
         printf("middle button - ");

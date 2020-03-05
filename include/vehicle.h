@@ -12,7 +12,7 @@
 #include "world.h"
 #include "list.h"
 
-#define VEHICLE_VEL 8
+#define VEHICLE_VEL 5
 #define VEHICLE_LOAD_TIME 3.0
 
 #define MaxVehicleHealth 2

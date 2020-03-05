@@ -17,6 +17,7 @@
 #include "world.h"
 #include "utils.h"
 #include "vehicle.h"
+#include "projectile.h"
 #include "meteor.h"
 #include "tower.h"
 
@@ -24,9 +25,9 @@ List* towerList;
 void initTowers(GLubyte world[WORLDX][WORLDY][WORLDZ]) 
 {
     towerList = initList();
-    for (int a = 0; a < 25; a++)
+    for (int a = 0; a < 5; a++)
         createRandomTower(0, world);
-    for (int a = 0; a < 25; a++)
+    for (int a = 0; a < 5; a++)
         createRandomTower(1, world);
 }
 
@@ -53,7 +54,7 @@ bool createTower(int team, int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ])
     basePos[X] = x;
     basePos[Y] = 0;
     basePos[Z] = z;
-    if (distanceVector(posA, basePos) < 10 || distanceVector(posB, basePos) < 10) {
+    if (distanceVector(posA, basePos) < 20 || distanceVector(posB, basePos) < 20) {
         //printf("Too close to base\n");
         return false;
     }
@@ -79,16 +80,15 @@ bool createTower(int team, int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ])
         if (world[x][h][z] == 0)
             break;
     t->pos[X] = x;
-    t->pos[Y] = h;
+    t->pos[Y] = h+TOWER_HEIGHT;
     t->pos[Z] = z;
 
-    int top = t->pos[Y]+TOWER_HEIGHT;
+    int top = t->pos[Y];
     //Draw main tower stack
-    for (h=t->pos[Y]; h < top; h++)
+    for (h=t->pos[Y]-TOWER_HEIGHT; h < top; h++)
         world[t->pos[X]][h][t->pos[Z]] = TOWER_A+t->team;
 
     //Draw hat
-    //for (h=top; h < top+3; h++)
     for (int hatX = x-1; hatX <= x+1; hatX++)
         for (int hatZ = z-1; hatZ <= z+1; hatZ++)
             world[hatX][top][hatZ] = TOWER_A+t->team;
@@ -100,9 +100,41 @@ bool createTower(int team, int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ])
 
 void updateTower(Tower* t, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
+    if (t->coolDown > 0) {
+        t->coolDown -= deltaTime;
+        return;
+    }
     //Look for targets
-    //todo
-
+    List* targetList = getVehicles();
+    Vehicle* closestTarget = NULL;
+    float targetDist = 100;
+    float towerPos[3] = {t->pos[0], t->pos[1]-1, t->pos[2]};
+    for (int a = 0; a < listSize(targetList); a++) {
+        Vehicle* v = (Vehicle*)listGet(targetList, a);
+        if (v->team == t->team)
+            continue;
+        float dist = distanceVector2D(towerPos, v->front);
+        if (dist < TOWER_RANGE && dist < targetDist) {
+            closestTarget = v;
+            targetDist = dist;
+        }
+    }
+    //shoot at target
+    if (closestTarget != NULL) {
+        float aim[3];
+        memcpy(aim, closestTarget->front, sizeof(float)*3);
+        for (int a = 0; a < 3; a++)
+            aim[a] -= towerPos[a];
+        getUnitVector(aim, aim);
+        float proj[3];
+        memcpy(proj, towerPos, sizeof(float)*3);
+        for (int a = 0; a < 3; a++) {
+            proj[a] += aim[a]*2;
+            aim[a] *= TOWER_PROJECTILE_SPEED;
+        }
+        if (createProjectile(0, proj, aim))
+            t->coolDown = TOWER_COOL_DOWN;
+    }
 }
 
 void updateTowers(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)

@@ -8,6 +8,8 @@
 #ifndef __MULLINSN_PROJECTILE_H__
 #define __MULLINSN_PROJECTILE_H__
 
+#include <stdbool.h>
+
 #include "graphics.h"
 #include "world.h"
 #include "list.h"
@@ -23,7 +25,7 @@ typedef struct projectile
 } Projectile;
 
 void initProjectiles();
-void createProjectile(int type, float spawnLocation[3], float velocity[3]);
+bool createProjectile(int type, float spawnLocation[3], float velocity[3]);
 void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);
 List* getProjectiles();
 int getNumberOfActiveProjectiles();
