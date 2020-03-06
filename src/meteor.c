@@ -105,7 +105,8 @@ void updateMeteors(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
         Meteor* m = (Meteor*)listGet(meteors, a);
         world[(int)m->pos[X]][(int)m->pos[Y]][(int)m->pos[Z]] = 0;
         for (int a = 0; a < 3; a++)
-            world[(int)m->prevPos[a][X]][(int)m->prevPos[a][Y]][(int)m->prevPos[a][Z]] = 0;
+            if (inBoundsV(m->prevPos[a]))
+                world[(int)m->prevPos[a][X]][(int)m->prevPos[a][Y]][(int)m->prevPos[a][Z]] = 0;
     }
     //Update position
     int a = -1;
