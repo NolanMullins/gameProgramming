@@ -21,6 +21,7 @@
 #include "meteor.h"
 #include "vehicle.h"
 #include "tower.h"
+#include "score.h"
 
 extern GLubyte world[WORLDX][WORLDY][WORLDZ];
 struct timespec currentTime;
@@ -226,6 +227,46 @@ void draw2D()
         if (-(int)pos[Z] > 9)
             drawNumber(-(int)pos[Z]/10%10, startX+2*pixel*4+3*pixel, startY-6*pixel, pixel);
         drawNumber(-(int)pos[Z]%10, startX+3*pixel*4+3*pixel, startY-6*pixel, pixel);
+
+        //Draw score
+        pixel = 2;
+        if (screenHeight < 900)
+            pixel = 1;
+        pixel *= 8;
+        GLfloat playerCol[] = {36.0/255.0, 104.0/255.0, 149.0/255.0,1.0};
+        GLfloat aiCol[] = {140.0/255.0, 25.0/255.0, 19.0/255.0,1.0};
+        int boxSize = 3*pixel;
+        //Draw player score
+        int playerScore = getScore(PLAYER);
+        set2Dcolour(col);
+        for (int box = 0; box < 3; box++)
+            for (int x = 0; x < 3; x++) 
+                for (int y = 0; y < 3; y++) {
+                    if (playerScore - 9*box - x*3 - y <= 0)
+                        break;
+                    int startX = 2*pixel+box*(boxSize+pixel) + x*pixel;
+                    int startY = pixel+boxSize - y*pixel;
+                    draw2Dbox(startX, startY, startX+pixel, startY+pixel);
+                }
+        
+        set2Dcolour(playerCol);
+        draw2Dbox(pixel, 3*pixel+boxSize, 5*pixel+boxSize*3, pixel);
+        
+        //Draw AI score
+        set2Dcolour(col);
+        int aiScore = getScore(AI);
+        for (int box = 0; box < 3; box++)
+            for (int x = 0; x < 3; x++) 
+                for (int y = 0; y < 3; y++) {
+                    if (aiScore - 9*box - x*3 - y <= 0)
+                        break;
+                    int startX = screenWidth - pixel - (2*pixel+box*(boxSize+pixel) + x*pixel);
+                    int startY = pixel+boxSize - y*pixel;
+                    draw2Dbox(startX, startY, startX+pixel, startY+pixel);
+                }
+        
+        set2Dcolour(aiCol);
+        draw2Dbox(screenWidth - 5*pixel-boxSize*3, 3*pixel+boxSize, screenWidth - pixel, pixel);
     }
 }
 
@@ -474,6 +515,7 @@ int main(int argc, char **argv)
 
         //Build map
         initWorld(world);
+        initScore();
         float spawn[3] = {0,0,0};
         initPlayer(spawn);
         setViewPosition(spawn[0], spawn[1], spawn[2]);

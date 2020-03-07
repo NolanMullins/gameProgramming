@@ -18,6 +18,7 @@
 #include "utils.h"
 #include "vehicle.h"
 #include "meteor.h"
+#include "score.h"
 
 List* vehicles;
 //todo
@@ -260,36 +261,12 @@ void state3Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
             v->hasBlock = false;
             v->state = 0;
             generateRandomCord(v->dest);
-            //Place block on top
-            float base[3];
-            memcpy(base, getBasePos(v->team), sizeof(float)*3);
-            for (int y = GROUND_LEVEL+5; y < GROUND_LEVEL+8; y++) {
-                for (int x = (int)base[X]-1; x <= (int)base[X]+1; x++) {
-                    for (int z = (int)base[Z]-1; z <= (int)base[Z]+1; z++) {
-                        if (world[x][y][z] != METEOR) {
-                            world[x][y][z] = METEOR;
-                            return;
-                        }
-                    }
-                }
-            }
+            depositPoints(v->team, 1);
         } else if (dist < 2) {
             v->hasBlock = false;
             v->state = 0;
             generateRandomCord(v->dest);
-            //Place block on top
-            float base[3];
-            memcpy(base, getBasePos(v->team), sizeof(float)*3);
-            for (int y = GROUND_LEVEL+5; y < GROUND_LEVEL+8; y++) {
-                for (int x = (int)base[X]-1; x <= (int)base[X]+1; x++) {
-                    for (int z = (int)base[Z]-1; z <= (int)base[Z]+1; z++) {
-                        if (world[x][y][z] != METEOR) {
-                            world[x][y][z] = METEOR;
-                            return;
-                        }
-                    }
-                }
-            }
+            depositPoints(v->team, 1);
         } 
     }
 }
