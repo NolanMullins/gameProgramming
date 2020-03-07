@@ -19,9 +19,10 @@ float playerLocation[3];
 float playerOrientation[2];
 
 void initPlayer(float spawnLocation[3]);
-//void updatePlayer(float prev[3], float curr[3], GLubyte world[WORLDX][WORLDY][WORLDZ]);
+void preUpdatePlayer(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);
 void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, bool b, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);
 void playerInput(int button, int state, int x, int y);
+void playerKeyboardInput(unsigned char key, GLubyte world[WORLDX][WORLDY][WORLDZ]);
 void drawUI();
 void endGamePlayer();
 void getPlayerPos(float pos[3]);

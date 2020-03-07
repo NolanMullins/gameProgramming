@@ -29,6 +29,7 @@ typedef struct tower
 } Tower;
 
 void initTowers(GLubyte world[WORLDX][WORLDY][WORLDZ]);
+bool validTowerLoc(int team, int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ]);
 void createRandomTower(int team, GLubyte world[WORLDX][WORLDY][WORLDZ]);
 bool createTower(int team, int x, int z,GLubyte world[WORLDX][WORLDY][WORLDZ]);
 void updateTowers(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);

@@ -1,0 +1,35 @@
+**********************************
+* Nolan Mullins 
+* Game Programming a3
+**********************************
+
+**********************************
+Overview
+**********************************
+AI vehicles that search out meteors and bring them back to base
+Towers that shoot and destroy the vehicles
+Meteors are pilled on top of the base into a 3x3 cube
+
+**********************************
+Limitations
+**********************************
+There's an edge case within the game that will cause a crash but 
+its so rare that I'm not sure if its fixed or still there 
+(I've only seen it occur after 30min+)
+
+I have the makefile set to the newer MAC OS OpenGL, this may need 
+be changed to run on other systems
+
+
+*******
+Compile
+*******
+make
+
+
+*******
+Running
+*******
+./a1
+or 
+make run

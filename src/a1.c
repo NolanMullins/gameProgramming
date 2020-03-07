@@ -346,6 +346,8 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
     }
     else
     {
+        preUpdatePlayer(world, delta);
+
         updateWorld(world, delta);
         getViewPosition(&x, &y, &z);
         float curr[3] = {x,y,z};
@@ -355,11 +357,11 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
         float view[3] = {x,y,z};
         bool f,l,r,b;
         getMovementKeys(&f, &l, &r, &b);
-        updatePlayerPosition(curr, view, f, l, r, b, world, delta);
         updateMeteors(world, delta);
         updateProjectiles(world, delta);
         updateTowers(world, delta);
         updateVehicles(world, delta);
+        updatePlayerPosition(curr, view, f, l, r, b, world, delta);
         setViewPosition(curr[0], curr[1], curr[2]);
     }
 }
@@ -457,6 +459,8 @@ int main(int argc, char **argv)
         setUserColour(VEHICLE_B, 5.0/255.0, 69.0/255.0, 109.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
         setUserColour(TOWER_A, 107.0/255.0, 58.0/255.0, 57.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
         setUserColour(TOWER_B, 39.0/255.0, 74.0/255.0, 96.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+
+        setUserColour(MARKER, 237.0/255.0, 11.0/255.0, 11.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
 
         float inc = 0.02;
         //Green hill

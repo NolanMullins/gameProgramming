@@ -25,10 +25,6 @@ List* towerList;
 void initTowers(GLubyte world[WORLDX][WORLDY][WORLDZ]) 
 {
     towerList = initList();
-    for (int a = 0; a < 5; a++)
-        createRandomTower(0, world);
-    for (int a = 0; a < 5; a++)
-        createRandomTower(1, world);
 }
 
 void createRandomTower(int team, GLubyte world[WORLDX][WORLDY][WORLDZ])
@@ -41,20 +37,14 @@ void createRandomTower(int team, GLubyte world[WORLDX][WORLDY][WORLDZ])
     } while(!created);
 }
 
-bool createTower(int team, int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ])
+bool validTowerLoc(int team, int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
-    //check if near a base
-    float posA[3];
-    memcpy(posA, getBasePos(0), sizeof(float)*3);
-    posA[Y] = 0;
-    float posB[3];
-    memcpy(posB, getBasePos(1), sizeof(float)*3);
-    posB[Y] = 0;
-    float basePos[3];
-    basePos[X] = x;
-    basePos[Y] = 0;
-    basePos[Z] = z;
-    if (distanceVector(posA, basePos) < 20 || distanceVector(posB, basePos) < 20) {
+    float towerPos[3];
+    towerPos[X] = x;
+    towerPos[Y] = 0;
+    towerPos[Z] = z;
+
+    if (distanceVector2D(getBasePos(0), towerPos) < 5 || distanceVector2D(getBasePos(1), towerPos) < 5) {
         //printf("Too close to base\n");
         return false;
     }
@@ -62,11 +52,40 @@ bool createTower(int team, int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ])
     for (int a = 0; a < listSize(towerList); a++)
     {
         Tower* other = (Tower*)listGet(towerList, a);
-        if (abs(other->pos[X]-x) + abs(other->pos[Z] - z) < 5) {
+        float otherPos[3];
+        for (int b = 0; b < 3; b++)
+            otherPos[b] = other->pos[b];
+        float dist = distanceVector2D(towerPos, otherPos);
+        if (dist < 5)
+        {
             //printf("Tower already in that pos\n");
             return false;
         }
+
     }
+    //Check if close to base
+    if (distanceVector2D(towerPos, getBasePos(team)) <= 15)
+        return true;
+
+    for (int a = 0; a < listSize(towerList); a++)
+    {
+        Tower* other = (Tower*)listGet(towerList, a);
+        float otherPos[3];
+        for (int b = 0; b < 3; b++)
+            otherPos[b] = other->pos[b];
+        float dist = distanceVector2D(towerPos, otherPos);
+        if (other->team == team) 
+            if (dist >= 5 && dist < 15)
+                return true;
+    }
+    return false;
+}
+
+bool createTower(int team, int x, int z, GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+
+    if (!validTowerLoc(team, x, z, world))
+        return false;
     //init
     Tower* t = malloc(sizeof(Tower));
     memset(t->aim, 0, sizeof(int)*3);
@@ -104,6 +123,10 @@ void updateTower(Tower* t, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTim
         t->coolDown -= deltaTime;
         return;
     }
+    //Redraw stack
+    for (int h=t->pos[Y]-TOWER_HEIGHT-3; h < t->pos[Y]; h++)
+        world[t->pos[X]][h][t->pos[Z]] = TOWER_A+t->team; 
+
     //Look for targets
     List* targetList = getVehicles();
     Vehicle* closestTarget = NULL;

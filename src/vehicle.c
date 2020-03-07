@@ -32,20 +32,6 @@ void initVehicles()
     stateFunctions[3] = state3Update;
 
     vehicles = initList();
-    createVehicle(0);
-    createVehicle(1);
-    createVehicle(0);
-    createVehicle(1);
-    createVehicle(0);
-    createVehicle(1);
-    createVehicle(0);
-    createVehicle(1);
-    createVehicle(0);
-    createVehicle(1);
-    createVehicle(0);
-    createVehicle(1);
-    createVehicle(0);
-    createVehicle(1);
 }
 
 void createVehicle(int team)
@@ -83,21 +69,26 @@ void damageVehicle(int index, Vehicle* v, int dmg, GLubyte world[WORLDX][WORLDY]
             setWorldBlockF(v->mid, world, 0);
         if (inBoundsV(v->back))
             setWorldBlockF(v->back, world, 0); 
+
+        //Create crater
+        if ((int)v->mid[Y]>1)
+            for (int x = (int)v->mid[X]-1; x <= (int)v->mid[X]+1; x++)
+                for (int y = (int)v->mid[Y]-1; y <= (int)v->mid[Y]; y++)
+                    for (int z = (int)v->mid[Z]-1; z <= (int)v->mid[Z]+1; z++)
+                        if (inBounds(x,y,z))
+                            world[x][y][z] = 0;
+        //Place meteor back in world
         if (v->hasBlock) {
             world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = 0;
             List* gms = getGroundedMeteors();
             GroundedMeteor* gm = malloc(sizeof(GroundedMeteor));
             memcpy(gm->pos, v->mid, sizeof(float)*3);
-            gm->pos[Y] -= 1;
+            if ((int)v->mid[Y]>1)
+                gm->pos[Y] -= 1;
             setWorldBlockF(gm->pos, world, METEOR);
             listAdd(gms, gm);
         }
-        //Create crater
-        for (int x = (int)v->mid[X]-1; x <= (int)v->mid[X]+1; x++)
-            for (int y = (int)v->mid[Y]-1; y <= (int)v->mid[Y]; y++)
-                for (int z = (int)v->mid[Z]-1; z <= (int)v->mid[Z]+1; z++)
-                    if (inBounds(x,y,z))
-                        world[x][y][z] = 0;
+
 
         //remove it from the world
         listRemove(vehicles, index);
@@ -183,7 +174,7 @@ void state0Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
     for (int a = 0; a < numMeteors; a++) {
         GroundedMeteor* m = (GroundedMeteor*)listGet(grounded, a);
         if (getWorldBlockF(m->pos, world) == METEOR) {
-            if (distanceVector(v->front, m->pos) <= 10) {
+            if (distanceVector(v->front, m->pos) <= 10 && inBoundsV(m->pos)) {
                 memcpy(v->dest, m->pos, sizeof(float)*3);
                 v->state = 1;
                 return;
@@ -265,22 +256,49 @@ void state3Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
         //Check if vehicle is on top of the base
         if (adjacentBlock == 0)
             adjacentBlock = world[(int)adjacent[X]][(int)adjacent[Y]-1][(int)adjacent[Z]];
-        if (v->team == 0 && adjacentBlock == BASEA) {
+        if ((v->team == 0 && adjacentBlock == BASEA) || (v->team == 1 && adjacentBlock == BASEB)) {
             v->hasBlock = false;
             v->state = 0;
             generateRandomCord(v->dest);
-        } else if (v->team == 1 & adjacentBlock == BASEB) {
+            //Place block on top
+            float base[3];
+            memcpy(base, getBasePos(v->team), sizeof(float)*3);
+            for (int y = GROUND_LEVEL+5; y < GROUND_LEVEL+8; y++) {
+                for (int x = (int)base[X]-1; x <= (int)base[X]+1; x++) {
+                    for (int z = (int)base[Z]-1; z <= (int)base[Z]+1; z++) {
+                        if (world[x][y][z] != METEOR) {
+                            world[x][y][z] = METEOR;
+                            return;
+                        }
+                    }
+                }
+            }
+        } else if (dist < 2) {
             v->hasBlock = false;
             v->state = 0;
             generateRandomCord(v->dest);
-        }
+            //Place block on top
+            float base[3];
+            memcpy(base, getBasePos(v->team), sizeof(float)*3);
+            for (int y = GROUND_LEVEL+5; y < GROUND_LEVEL+8; y++) {
+                for (int x = (int)base[X]-1; x <= (int)base[X]+1; x++) {
+                    for (int z = (int)base[Z]-1; z <= (int)base[Z]+1; z++) {
+                        if (world[x][y][z] != METEOR) {
+                            world[x][y][z] = METEOR;
+                            return;
+                        }
+                    }
+                }
+            }
+        } 
     }
 }
 
 void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     int i = -1;
-    while (++i < listSize(vehicles))
+    int listsize = listSize(vehicles);
+    while (++i < listsize)
     {
         Vehicle* v = (Vehicle*)listGet(vehicles, i);
         int blockType = VEHICLE_A;
@@ -294,10 +312,24 @@ void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
         if (inBoundsV(v->back))
             setWorldBlockF(v->back, world, 0);
         if (v->hasBlock)
-            world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = 0;
+            if (inBoundsV(v->mid))
+                world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = 0;
 
         //Update state
         (*stateFunctions[v->state])(v, world, deltaTime);
+
+        //Safety check
+        if (!inBoundsV(v->front)) {
+            printf("Deleting vic\n");
+            //remove it from the world
+            listRemove(vehicles, i);
+            //Spawn a new one
+            createVehicle(v->team);
+            //Clean it up
+            free(v); 
+            listsize--;
+            i--;
+        }
 
         //Draw vehicle
         setWorldBlockF(v->front, world, blockType);
@@ -306,7 +338,8 @@ void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
         if (inBoundsV(v->back))
             setWorldBlockF(v->back, world, blockType);
         if (v->hasBlock)
-            world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = METEOR;
+            if (inBoundsV(v->mid))
+                world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = METEOR;
     }
 }
 

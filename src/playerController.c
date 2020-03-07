@@ -16,15 +16,23 @@
 #include "graphics.h"
 #include "projectile.h"
 #include "playerController.h"
+#include "vehicle.h"
+#include "utils.h"
+#include "tower.h"
+
+bool towerMode;
+float prevMarkerPos[3];
 
 void initPlayer(float spawnLocation[3]) 
 {
+    towerMode = false;
     spawnLocation[0] = -50;
     spawnLocation[1] = -20;
     spawnLocation[2] = -50;
     memcpy(playerLocation, spawnLocation, sizeof(float)*3);
     playerOrientation[X] = 0;
     playerOrientation[Y] = 0;
+    prevMarkerPos[X] = -1;
 }
 
 bool checkCollision(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ])
@@ -75,6 +83,46 @@ void findEmpty(float loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ], int radius)
         findEmpty(loc, world, radius+1);
 }
 
+void getLocationInDirection(float loc[3], float playerPos[3], float direction[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+    for (int a = 0; a < 3; a++)
+        loc[a] = -playerPos[a];
+
+    if (vectorLength(direction) < 0.1) {
+        loc[X] = -1;
+        return;
+    }
+
+    while (inBoundsV(loc) && getWorldBlockF(loc, world) == 0)
+    {
+        for (int a = 0; a < 3; a++)
+        {
+            loc[a] += direction[a];
+        }
+    }
+    if (inBoundsV(loc)) 
+    {
+        while (inBoundsV(loc) && getWorldBlockF(loc, world) != 0) 
+        {
+            loc[Y] = (int)loc[Y]+1;
+        }
+        loc[X] = (int)loc[X];
+        loc[Z] = (int)loc[Z];
+    }
+}
+
+void preUpdatePlayer(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
+{
+    if (towerMode)
+    {
+        //undraw tower
+        if (inBoundsV(prevMarkerPos)) 
+        {
+            setWorldBlockF(prevMarkerPos, world, 0);
+        }
+    }
+}
+
 void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, bool b, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     float rotx = (view[0]/ 180.0 * 3.141592);
@@ -108,15 +156,12 @@ void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, b
 
     //Check direction player is moving in for clear path
     float direction[3] = {newLoc[0]-pos[0], newLoc[1]-pos[1], newLoc[2]-pos[2]};
-    float len = sqrt(direction[X]*direction[X] + direction[Y]*direction[Y] + direction[Z]*direction[Z]);
-    direction[X] = direction[X] / (len);
-    direction[Y] = direction[Y] / (len);
-    direction[Z] = direction[Z] / (len);
+    getUnitVector(direction, direction);
 
     int flag = 0;
     if (checkCollision(-newLoc[X],-newLoc[Y],-newLoc[Z], world))
         flag=1;
-    if (len > 0 && checkCollision(-(newLoc[X] + direction[X]),-(newLoc[Y] + direction[Y]),-(newLoc[Z] + direction[Z]), world)) 
+    if (checkCollision(-(newLoc[X] + direction[X]),-(newLoc[Y] + direction[Y]),-(newLoc[Z] + direction[Z]), world)) 
         flag=1;
 
     if (flag == 0)
@@ -124,6 +169,25 @@ void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, b
         pos[X] = newLoc[X];
         pos[Y] = newLoc[Y];
         pos[Z] = newLoc[Z];
+    }
+
+    if (towerMode)
+    {
+        float x = sin(playerOrientation[1])*cos(playerOrientation[0]);
+        float y = -sin(playerOrientation[0]);
+        float z = -cos(playerOrientation[1])*cos(playerOrientation[0]);
+        float lookDirection[3] = {x,y,z};
+        //Draw marker
+        float markerPos[3];
+        getLocationInDirection(markerPos, pos, lookDirection, world);
+        memcpy(prevMarkerPos, markerPos, sizeof(float)*3);
+        if (inBoundsV(markerPos)) 
+        {
+            int block = TOWER_B;
+            if (!validTowerLoc(1, (int)markerPos[X], (int)markerPos[Z], world))
+                block = MARKER;
+            setWorldBlockF(markerPos, world, block);
+        }
     }
 
     memcpy(playerLocation, pos, sizeof(float)*3);
@@ -159,6 +223,29 @@ void playerInput(int button, int state, int x, int y)
 
     printf("%d %d\n", x, y);
     */
+}
+
+void playerKeyboardInput(unsigned char key, GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+    //printf("input: %c\n", key);
+    switch (key) {
+        case 't':
+            createVehicle(1);
+            break;
+        case 'y':
+            if (!towerMode) {
+                towerMode = true;
+            } else {
+                if (inBoundsV(prevMarkerPos)) {
+                    setWorldBlockF(prevMarkerPos, world, 0);
+                    createTower(1,(int)prevMarkerPos[X], (int)prevMarkerPos[Z], world);
+                }
+                towerMode = false;
+            }
+            break;
+        case 'e':
+            towerMode = false;
+    }
 }
 
 void getPlayerPos(float pos[3])

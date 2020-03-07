@@ -10,6 +10,7 @@
 #include <stdbool.h>
 
 #include "graphics.h"
+#include "playerController.h"
 
 GLubyte  world[WORLDX][WORLDY][WORLDZ];
 
@@ -815,6 +816,8 @@ static int lighton = 1;
          else
             fixedVP = 0;
          break;
+      default:
+         playerKeyboardInput(key, world);
    }
 }
 
