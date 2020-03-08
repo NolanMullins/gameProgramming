@@ -38,10 +38,11 @@ void initAI()
 bool aiSpawnTower(GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
     int attempts = 50, x, z, offset = 0;
-    if (numTowers > 4)
+    if (numTowers > 3)
         offset = 2;
     int randX[4] = {40,lastTowerPos[X]+10, 30, 50};
-    int randZ[4] = {30,lastTowerPos[Z]-15, WORLDZ-30, 15};
+    //int randZ[4] = {30,lastTowerPos[Z]-15, WORLDZ-30, 15};
+    int randZ[4] = {30,35, WORLDZ-30, 15};
     do {
         x = rand()%randX[offset] + randX[offset+1];
         z = rand()%randZ[offset] + randZ[offset+1];

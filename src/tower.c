@@ -144,23 +144,44 @@ void updateTower(Tower* t, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTim
 
     //Look for targets
     List* targetList = getVehicles();
-    Vehicle* closestTarget = NULL;
+    float closestTargetPos[3] = {-1,-1,-1};
     float targetDist = 100;
     float towerPos[3] = {t->pos[0], t->pos[1]-1, t->pos[2]};
-    for (int a = 0; a < listSize(targetList); a++) {
-        Vehicle* v = (Vehicle*)listGet(targetList, a);
-        if (v->team == t->team)
+
+    Node* towerNode = getTowers()->list;
+    Tower* tNode = (Tower*)towerNode->data;
+    float tmp[3] = {tNode->pos[X], tNode->pos[Y], tNode->pos[Z]};
+    int a = 0;
+    if (tNode->team != t->team && distanceVector2D(tmp, towerPos) < TOWER_RANGE) {
+        targetDist = distanceVector2D(tmp, towerPos);
+        memcpy(closestTargetPos, tmp, sizeof(float)*3);
+    }
+    while ((towerNode = towerNode->next) != NULL) {
+        tNode = (Tower*)towerNode->data;
+        if (tNode->team == t->team)
             continue;
-        float dist = distanceVector2D(towerPos, v->front);
+        float tPos[3] = {tNode->pos[X], tNode->pos[Y], tNode->pos[Z]};
+        float dist = distanceVector2D(tPos, towerPos);
         if (dist < TOWER_RANGE && dist < targetDist) {
-            closestTarget = v;
             targetDist = dist;
+            memcpy(closestTargetPos, tPos, sizeof(float)*3);
         }
     }
+    if (!inBoundsV(closestTargetPos))
+        for (int a = 0; a < listSize(targetList); a++) {
+            Vehicle* v = (Vehicle*)listGet(targetList, a);
+            if (v->team == t->team)
+                continue;
+            float dist = distanceVector2D(towerPos, v->front);
+            if (dist < TOWER_RANGE && dist < targetDist) {
+                memcpy(closestTargetPos, v->front, sizeof(float)*3);
+                targetDist = dist;
+            }
+        }
     //shoot at target
-    if (closestTarget != NULL) {
+    if (inBoundsV(closestTargetPos)) {
         float aim[3];
-        memcpy(aim, closestTarget->front, sizeof(float)*3);
+        memcpy(aim, closestTargetPos, sizeof(float)*3);
         for (int a = 0; a < 3; a++)
             aim[a] -= towerPos[a];
         getUnitVector(aim, aim);
