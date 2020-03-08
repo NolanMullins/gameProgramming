@@ -30,9 +30,12 @@ void initAI()
     aiThinkTime = 0.5;
     aiTimer = aiThinkTime;
     numTowers = 0;
-    towerProb = 105;
+    towerProb = 90;
     memcpy(lastTowerPos, getBasePos(AI), sizeof(float)*3);
     buildProb = -50;
+    createVehicle(AI);
+    createVehicle(AI);
+    createVehicle(AI);
 }
 
 bool aiSpawnTower(GLubyte world[WORLDX][WORLDY][WORLDZ])
@@ -61,7 +64,7 @@ void updateAI(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
     if (aiTimer > 0)
         return;
     aiTimer = aiThinkTime;
-    if (getScore(AI) <= 0 || getScore(AI) > 20)
+    if (getScore(AI) <= 1 || getScore(AI) > 20)
         return;
     if (numTowers > 6)
         if ((int)(rand()%100)<buildProb)
@@ -81,9 +84,10 @@ void updateAI(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
         aiThinkTime += 1;
     }
     int num = (int)(rand()%100)+1;
-    if (num > towerProb)
-        aiSpawnTower(world);
-    else {
+    if (num > towerProb) {
+        if (getScore(AI)>1)
+            aiSpawnTower(world);
+    } else {
         createVehicle(AI);
         if (towerProb > 20)
             towerProb -= 5;

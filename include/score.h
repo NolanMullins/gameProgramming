@@ -19,7 +19,7 @@
 #define AI 0
 #define PLAYER 1
 
-#define TOWER_COST 1
+#define TOWER_COST 2
 #define VEHICLE_COST 1
 
 int score[2];
