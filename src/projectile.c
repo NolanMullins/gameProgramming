@@ -27,6 +27,8 @@ extern void setMobPosition(int, float, float, float, float);
 extern void hideMob(int);
 extern void showMob(int);
 
+#define TOWER_RAD 2.5
+
 void initProjectiles()
 {
     projectiles = initList();
@@ -155,18 +157,19 @@ void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
                 Tower* t = (Tower*)towerNode->data;
                 float tmp[3] = {t->pos[X], t->pos[Y], t->pos[Z]};
                 int a = 0;
-                if (distanceVector2D(tmp, c) < 1.8)
+                if (distanceVector2D(tmp, c) < TOWER_RAD) {
                     damageTower(a, t, ProjectileDMG, world);
-                else 
+                } else  {
                     while ((towerNode = towerNode->next) != NULL) {
                         t = (Tower*)towerNode->data;
                         a++;
                         float tPos[3] = {t->pos[X], t->pos[Y], t->pos[Z]};
-                        if (distanceVector2D(tPos, c) < 1.8) {
+                        if (distanceVector2D(tPos, c) < TOWER_RAD) {
                             damageTower(a, t, ProjectileDMG, world);
                             break;
                         }
                     }
+                }
             }
             if (block == VEHICLE_A || block == VEHICLE_B) {
                 Node* vics = getVehicles()->list;

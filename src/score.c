@@ -6,10 +6,13 @@
  ****************************************/
 
 #include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 #include "score.h"
 #include "graphics.h"
 #include "world.h"
+#include "utils.h"
 
 void initScore()
 {
@@ -33,4 +36,13 @@ bool usePoints(int team, int points)
 void depositPoints(int team, int points)
 {
     score[team] += points;
+    if (score[team] >= 27) {
+        printf("***************\n");
+        if (team == AI)
+            printf("AI wins!!!\n%d - %d\n", score[AI], score[PLAYER]);
+        if (team == PLAYER)
+            printf("You win!!!\n%d - %d\n", score[PLAYER], score[AI]);
+        printf("***************\nq to quit\n");
+        paused = true;
+    }
 }

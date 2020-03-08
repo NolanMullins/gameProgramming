@@ -24,6 +24,7 @@
 #include "tower.h"
 #include "score.h"
 
+
 extern GLubyte world[WORLDX][WORLDY][WORLDZ];
 struct timespec currentTime;
 
@@ -386,7 +387,7 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
 
         /* end testworld animation */
     }
-    else
+    else if (!paused)
     {
         preUpdatePlayer(world, delta);
 
@@ -515,6 +516,7 @@ int main(int argc, char **argv)
         for (int i = 0; i < 10; i++)
             setUserColour(DIRT+i, 79.0/255.0+inc*i*2, 47.0/255.0+inc*i, 29.0/255.0+inc*i, 1.0, 51.0/255.0, 29.0/255.0, 18.0/255.0, 0.5);
 
+        paused = false;
         //Build map
         initWorld(world);
         initScore();
