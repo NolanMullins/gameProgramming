@@ -18,6 +18,7 @@
 #include "utils.h"
 #include "projectile.h"
 #include "vehicle.h"
+#include "tower.h"
 
 List* projectiles;
 
@@ -121,6 +122,11 @@ bool createProjectile(int type, float spawnLocation[3], float velocity[3])
     return true;
 }
 
+bool checkVehicleCollision(Vehicle* v, float c[3])
+{
+    return (occupySameBlock(v->front, c) || occupySameBlock(v->mid, c) || occupySameBlock(v->back, c));
+}
+
 void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     int i = -1;
@@ -144,16 +150,39 @@ void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
         else if (getCollision(obj->pos, obj->velocity, c, world, deltaTime))
         {
             int block = getWorldBlockF(c, world);
-
-            if (block == VEHICLE_A || block == VEHICLE_B) {
-                List* vehicles = getVehicles();
-                for (int a = 0; a < listSize(vehicles); a++) {
-                    Vehicle* v = (Vehicle*)listGet(vehicles, a);
-                    if (occupySameBlock(v->front, c) || occupySameBlock(v->mid, c) || occupySameBlock(v->back, c)) {
-                        damageVehicle(a, v, ProjectileDMG, world);
-                        break;
+            if (block == TOWER_A || block == TOWER_B) {
+                Node* towerNode = getTowers()->list;
+                Tower* t = (Tower*)towerNode->data;
+                float tmp[3] = {t->pos[X], t->pos[Y], t->pos[Z]};
+                int a = 0;
+                if (distanceVector2D(tmp, c) < 1.0)
+                    damageTower(a, t, ProjectileDMG, world);
+                else 
+                    while ((towerNode = towerNode->next) != NULL) {
+                        t = (Tower*)towerNode->data;
+                        a++;
+                        float tPos[3] = {t->pos[X], t->pos[Y], t->pos[Z]};
+                        if (distanceVector2D(tPos, c) < 1.0) {
+                            damageTower(a, t, ProjectileDMG, world);
+                            break;
+                        }
                     }
-                }
+            }
+            if (block == VEHICLE_A || block == VEHICLE_B) {
+                Node* vics = getVehicles()->list;
+                Vehicle* v = (Vehicle*)vics->data;
+                int a = 0;
+                if (checkVehicleCollision(v, c)) 
+                    damageVehicle(a, v, ProjectileDMG, world);
+                else 
+                    while ((vics = vics->next) != NULL) {
+                        v = (Vehicle*)vics->data;
+                        a++;
+                        if (checkVehicleCollision(v, c)) {
+                            damageVehicle(a, v, ProjectileDMG, world);
+                            break;
+                        }
+                    }
             }
             //Remove block from the world
             //int block = world[(int)c[X]][(int)c[Y]][(int)c[Z]];

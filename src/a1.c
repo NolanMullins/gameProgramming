@@ -13,6 +13,7 @@
 #include <math.h>
 #include <time.h>
 
+#include "ai.h"
 #include "utils.h"
 #include "graphics.h"
 #include "world.h"
@@ -404,6 +405,7 @@ createTube(2, -xx, -yy, -zz, -xx-((x-xx)*25.0), -yy-((y-yy)*25.0), -zz-((z-zz)*2
         updateVehicles(world, delta);
         updatePlayerPosition(curr, view, f, l, r, b, world, delta);
         setViewPosition(curr[0], curr[1], curr[2]);
+        updateAI(world, delta);
     }
 }
 
@@ -523,6 +525,7 @@ int main(int argc, char **argv)
         initMeteors();
         initVehicles();
         initTowers(world);
+        initAI();
     }
 
     //Record initial time
@@ -540,6 +543,7 @@ int main(int argc, char **argv)
         endGameMeteors();
         endGameVehicles();
         endGameTowers();
+        endGameAI();
     }
 
     return 0;

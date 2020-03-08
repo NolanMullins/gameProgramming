@@ -37,6 +37,8 @@ void initVehicles()
 
 void createVehicle(int team)
 {
+    if (!usePoints(team, VEHICLE_COST))
+        return;
     Vehicle* v = malloc(sizeof(Vehicle));
     memcpy(v->front, getBasePos(team), sizeof(float)*3);
     memcpy(v->dest, v->front, sizeof(float)*3);
@@ -92,11 +94,7 @@ void damageVehicle(int index, Vehicle* v, int dmg, GLubyte world[WORLDX][WORLDY]
 
 
         //remove it from the world
-        listRemove(vehicles, index);
-        //Spawn a new one
-        createVehicle(v->team);
-        //Clean it up
-        free(v);
+        free(listRemove(vehicles, index));
     }
 }
 
