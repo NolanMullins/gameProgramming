@@ -29,6 +29,8 @@ bool inBounds(float x, float y, float z);
 bool collisionV(float pos[3], GLubyte world[WORLDX][WORLDY][WORLDZ]);
 bool collision(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ]);
 
+void generateRandomCord(float dest[3]);
+
 int getWorldBlockF(float loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ]);
 int getWorldBlock(int loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ]);
 void setWorldBlockF(float loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ], int block);

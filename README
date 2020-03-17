@@ -1,14 +1,22 @@
 **********************************
 * Nolan Mullins 
-* Game Programming a3
+* Game Programming a4
 **********************************
 
 **********************************
 Overview
 **********************************
-AI vehicles that search out meteors and bring them back to base
-Towers that shoot and destroy the vehicles
-Meteors are pilled on top of the base into a 3x3 cube
+Player will be put against an AI opponent, tucks can be created by 
+pressing t, towers can be put down by pushing y and then selecting 
+a location and pushing y again. The game is over at 27 where everything 
+will pause. 
+
+**********************************
+AI strategy
+**********************************
+It will place more trucks at the start and then aggressively place 
+towers towards the players base. As time goes on the AI will place 
+less and less in an attempt to save up points. 
 
 **********************************
 Limitations

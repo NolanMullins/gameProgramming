@@ -8,7 +8,7 @@
 # WSL / Linux 
 INCLUDES = -Iinclude -lm -lglut -lGLU -lGL
 CC=gcc
-OBJ = src/a1.o src/playerController.o src/ai.o src/vehicle.o src/tower.o src/meteor.o src/score.o src/projectile.o src/world.o src/graphics.o src/visible.o src/utils.o src/list.o
+OBJ = src/a1.o src/playerController.o src/ai.o src/tank.o src/heli.o src/vehicle.o src/tower.o src/meteor.o src/score.o src/projectile.o src/world.o src/graphics.o src/visible.o src/utils.o src/list.o
 EXE = a1
 
 a1: $(OBJ)

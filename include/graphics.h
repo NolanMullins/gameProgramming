@@ -40,6 +40,13 @@
 #define TOWER_B 43
 
 #define MARKER 44
+#define SELECTED 45
+
+#define HELI_A 46
+#define HELI_B 47
+
+#define TANK_A 48
+#define TANK_B 49
 
 /* list of cubes to draw with each screen update */
 #define MAX_DISPLAY_LIST 500000

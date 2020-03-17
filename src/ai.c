@@ -36,6 +36,7 @@ void initAI()
     createVehicle(AI);
     createVehicle(AI);
     createVehicle(AI);
+    createVehicle(AI);
 }
 
 bool aiSpawnTower(GLubyte world[WORLDX][WORLDY][WORLDZ])

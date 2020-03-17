@@ -112,6 +112,11 @@ void setWorldBlock(int loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ], int block)
     world[loc[X]][loc[Y]][loc[Z]] = block;
 }
 
+void generateRandomCord(float dest[3])
+{
+    dest[X] = rand()%(WORLDX-10)+5;
+    dest[Z] = rand()%(WORLDZ-10)+5;
+}
 
 void drawPixel(int x, int y, int size)
 {

@@ -1,8 +1,8 @@
 /****************************************
  * Nolan Mullins
  * 0939720
- * 2020-03-01
- * Game programing -  Vehicle class
+ * 2020-03-016
+ * Game programing - Heli class
  ***************************************/
 
 #include <stdio.h>
@@ -16,35 +16,28 @@
 #include "graphics.h"
 #include "world.h"
 #include "utils.h"
-#include "vehicle.h"
+#include "heli.h"
 #include "meteor.h"
 #include "score.h"
 
-List* vehicles;
-void (*stateFunctions[4]) (Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);
+List* helicopters;
 
-void initVehicles()
+void initHeli()
 {
-    //set fnc pointers
-    stateFunctions[0] = state0Update;
-    stateFunctions[1] = state1Update;
-    stateFunctions[2] = state2Update;
-    stateFunctions[3] = state3Update;
-
-    vehicles = initList();
+    helicopters = initList();
 }
 
-void createVehicle(int team)
+void createHeli(int team)
 {
-    if (!usePoints(team, VEHICLE_COST))
+    if (!usePoints(team, HELI_COST))
         return;
-    Vehicle* v = malloc(sizeof(Vehicle));
+    Heli* v = malloc(sizeof(Heli));
     memcpy(v->front, getBasePos(team), sizeof(float)*3);
     memcpy(v->dest, v->front, sizeof(float)*3);
     memset(v->mid, 0, sizeof(float)*3);
     memset(v->back, 0, sizeof(float)*3);
     memset(v->move, 0, sizeof(float)*3);
-    v->health = MaxVehicleHealth;
+    v->health = MaxHeliHealth;
     v->hasBlock = false;
     v->mid[X]=-1;
     v->back[X]=-1;
@@ -58,10 +51,10 @@ void createVehicle(int team)
     //6 blocks away from center of 
     v->dest[X] += 6*direction;
     v->team = team;
-    listAdd(vehicles, v);
+    listAdd(helicopters, v);
 }
 
-void damageVehicle(int index, Vehicle* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLDZ])
+void damageHeli(int index, Heli* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
     v->health -= dmg;
     if (v->health <= 0) {
@@ -93,11 +86,11 @@ void damageVehicle(int index, Vehicle* v, int dmg, GLubyte world[WORLDX][WORLDY]
 
 
         //remove it from the world
-        free(listRemove(vehicles, index));
+        free(listRemove(helicopters, index));
     }
 }
 
-float moveVehicleToDest(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
+float moveHeliToDest(Heli* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     float direction[3], unitDirection[3];
     memcpy(direction, v->dest, sizeof(float)*3);
@@ -110,8 +103,8 @@ float moveVehicleToDest(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float
 
     getUnitVector(unitDirection, direction);
     memcpy(v->currDirection, unitDirection, sizeof(float)*3);
-    unitDirection[X] *= VEHICLE_VEL * deltaTime;
-    unitDirection[Z] *= VEHICLE_VEL * deltaTime;
+    unitDirection[X] *= HELI_VEL * deltaTime;
+    unitDirection[Z] *= HELI_VEL * deltaTime;
     
     v->move[X] += unitDirection[X]; 
     v->move[Z] += unitDirection[Z]; 
@@ -158,8 +151,7 @@ float moveVehicleToDest(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float
     return vectorLength(direction);
 }
 
-//Search for meteors
-void state0Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
+void moveHeli(Heli* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     List* grounded = getGroundedMeteors();
     int numMeteors = listSize(grounded);
@@ -177,101 +169,22 @@ void state0Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
             numMeteors--;
         }
     }
-    float dist = moveVehicleToDest(v, world, deltaTime);
+    float dist = moveHeliToDest(v, world, deltaTime);
     //Move vehicle
     if (dist < 0.5)
         generateRandomCord(v->dest);
 }
 
-//Move towards meteors
-void state1Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
-{
-    //Check if meteors is still there
-    if (getWorldBlockF(v->dest, world) != METEOR) {
-        v->state = 0;
-        generateRandomCord(v->dest);
-        return;
-    }
-
-    //Move vehicle towards meteor
-    float dist = moveVehicleToDest(v, world, deltaTime);
-
-    //Is it at meteor?
-    if (dist < 1.51) {
-        v->state = 2;
-        v->loadTime = VEHICLE_LOAD_TIME;
-    }
-}
-
-//Load meteor
-void state2Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
-{
-    //Check if meteor is still there
-    if (getWorldBlockF(v->dest, world) != METEOR) {
-        v->state = 0;
-        generateRandomCord(v->dest);
-        return;
-    }
-
-    //Update load clock
-    v->loadTime -= deltaTime;
-
-    //Are we done loading?
-    if (v->loadTime <= 0) {
-        List* grounded = getGroundedMeteors();
-        int numMeteors = listSize(grounded);
-        for (int a = 0; a < numMeteors; a++) {
-            GroundedMeteor* m = (GroundedMeteor*)listGet(grounded, a);
-            if ((int)m->pos[X] == (int)v->dest[X] && (int)m->pos[Z] == (int)v->dest[Z]) {
-                free(listRemove(grounded, a));
-                break;
-            }
-        }
-        setWorldBlockF(v->dest, world, 0);
-        memcpy(v->dest, getBasePos(v->team), sizeof(float)*3);
-        v->state = 3;
-        v->hasBlock = true;
-    }
-}
-
-//Return to base
-void state3Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
-{
-    //move towards base
-    float dist = moveVehicleToDest(v, world, deltaTime);
-    float adjacent[3];
-    memcpy(adjacent, v->front, sizeof(float)*3);
-    adjacent[X] += v->currDirection[X];
-    adjacent[Z] += v->currDirection[Z];
-    if (inBoundsV(adjacent)) {
-        int adjacentBlock = world[(int)adjacent[X]][(int)adjacent[Y]][(int)adjacent[Z]];
-        //Check if vehicle is on top of the base
-        if (adjacentBlock == 0)
-            adjacentBlock = world[(int)adjacent[X]][(int)adjacent[Y]-1][(int)adjacent[Z]];
-        if ((v->team == 0 && adjacentBlock == BASEA) || (v->team == 1 && adjacentBlock == BASEB)) {
-            v->hasBlock = false;
-            v->state = 0;
-            generateRandomCord(v->dest);
-            depositPoints(v->team, 1);
-        } else if (dist < 2) {
-            v->hasBlock = false;
-            v->state = 0;
-            generateRandomCord(v->dest);
-            depositPoints(v->team, 1);
-        } 
-    }
-}
-
-void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
+void updateHeli(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     int i = -1;
-    int listsize = listSize(vehicles);
+    int listsize = listSize(helicopters);
     while (++i < listsize)
     {
-        Vehicle* v = (Vehicle*)listGet(vehicles, i);
-        int blockType = VEHICLE_A;
+        Heli* v = (Heli*)listGet(helicopters, i);
+        int blockType = HELI_A;
         if (v->team == 1)
-            blockType = VEHICLE_B;
+            blockType = HELI_B;
 
         //Undraw vehicle
         setWorldBlockF(v->front, world, 0);
@@ -284,14 +197,14 @@ void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
                 world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = 0;
 
         //Update state
-        (*stateFunctions[v->state])(v, world, deltaTime);
+        moveHeli(v, world, deltaTime);
 
         //Safety check
         if (!inBoundsV(v->front)) {
             //remove it from the world
-            listRemove(vehicles, i);
+            listRemove(helicopters, i);
             //Spawn a new one
-            createVehicle(v->team);
+            createHeli(v->team);
             //Clean it up
             free(v); 
             listsize--;
@@ -310,22 +223,22 @@ void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
     }
 }
 
-List* getVehicles()
+List* getHeli()
 {
-    return vehicles;
+    return helicopters;
 }
 
-int getNumberOfActiveVehicles()
+int getNumberOfActiveHeli()
 {
-    return listSize(vehicles);
+    return listSize(helicopters);
 }
 
-void freeVehicle(void* obj)
+void freeHeli(void* obj)
 {
     free(obj);
 }
 
-void endGameVehicles()
+void endGameHeli()
 {
-    vehicles = listClear(vehicles, &freeVehicle);
+    helicopters = listClear(helicopters, &freeHeli);
 }

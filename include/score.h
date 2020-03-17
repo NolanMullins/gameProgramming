@@ -13,14 +13,16 @@
 #include "graphics.h"
 #include "world.h"
 
-#define PLAYER_START 3
-#define AI_START 3
+#define PLAYER_START 4
+#define AI_START 4
 
 #define AI 0
 #define PLAYER 1
 
 #define TOWER_COST 2
 #define VEHICLE_COST 1
+#define HELI_COST 2
+#define TANK_COST 3
 
 int score[2];
 

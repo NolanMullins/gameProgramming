@@ -19,6 +19,7 @@
 #include "vehicle.h"
 #include "utils.h"
 #include "tower.h"
+#include "score.h"
 
 bool towerMode;
 float prevMarkerPos[3];
@@ -33,6 +34,7 @@ void initPlayer(float spawnLocation[3])
     playerOrientation[X] = 0;
     playerOrientation[Y] = 0;
     prevMarkerPos[X] = -1;
+    createVehicle(PLAYER);
 }
 
 bool checkCollision(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ])
