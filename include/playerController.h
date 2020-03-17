@@ -18,6 +18,8 @@
 float playerLocation[3];
 float playerOrientation[2];
 
+int selectedIndex;
+
 void initPlayer(float spawnLocation[3]);
 void preUpdatePlayer(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);
 void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, bool b, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);

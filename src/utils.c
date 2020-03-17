@@ -22,6 +22,19 @@ void printVector(float vec[3])
     printf("%.1f %.1f %.1f\n", vec[0], vec[1], vec[2]);
 }
 
+void printVectorCustom(float x, float y, float z)
+{
+    printf("%.1f %.1f %.1f\n", x, y, z);
+}
+
+void rotateVector(float v[3], float radians)
+{
+    //double angle = atan(v[Z]/v[X]);
+    //angle += radians;
+    v[X] = v[X]*cos(radians) - v[Z]*sin(radians);
+    v[Z] = v[X]*sin(radians) + v[Z]*cos(radians);
+}
+
 float vectorLength(float vec[3])
 {
     return sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);
@@ -102,6 +115,11 @@ int getWorldBlock(int loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ])
     return world[loc[X]][loc[Y]][loc[Z]];
 }
 
+int getWorldBlockCustom(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ])
+{
+    return world[(int)x][(int)y][(int)z];
+}
+
 void setWorldBlockF(float loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ], int block)
 {
     world[(int)loc[X]][(int)loc[Y]][(int)loc[Z]] = block;
@@ -110,6 +128,14 @@ void setWorldBlockF(float loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ], int blo
 void setWorldBlock(int loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ], int block)
 {
     world[loc[X]][loc[Y]][loc[Z]] = block;
+}
+
+void setWorldBlockCustom(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ], int block)
+{
+    if (inBounds(x,y,z))
+        world[(int)x][(int)y][(int)z] = block;
+    else 
+        printVectorCustom(x,y,z);
 }
 
 void generateRandomCord(float dest[3])

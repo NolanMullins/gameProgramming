@@ -31,34 +31,32 @@ void createTank(int team)
 {
     if (!usePoints(team, TANK_COST))
         return;
-    Tank* v = malloc(sizeof(Tank));
-    memcpy(v->front, getBasePos(team), sizeof(float)*3);
-    memcpy(v->dest, v->front, sizeof(float)*3);
-    memset(v->mid, 0, sizeof(float)*3);
-    memset(v->back, 0, sizeof(float)*3);
-    memset(v->move, 0, sizeof(float)*3);
-    v->health = MaxTankHealth;
-    v->hasBlock = false;
-    v->mid[X]=-1;
-    v->back[X]=-1;
-    v->state = 0;
+    Tank* t = malloc(sizeof(Tank));
+    memcpy(t->front, getBasePos(team), sizeof(float)*3);
+    memcpy(t->dest, t->front, sizeof(float)*3);
+    memset(t->mid, 0, sizeof(float)*3);
+    memset(t->back, 0, sizeof(float)*3);
+    memset(t->move, 0, sizeof(float)*3);
+    t->health = MaxTankHealth;
+    t->mid[X]=-1;
+    t->back[X]=-1;
     int direction = 1;
     if (team==1)
         direction = -1;
-    v->front[X] += 3*direction;
-    v->front[Y] += 0;
-    v->front[Z] += 0;
+    t->front[X] += 4*direction;
+    t->front[Y] += 0;
+    t->front[Z] += 0;
     //6 blocks away from center of 
-    v->dest[X] += 6*direction;
-    v->team = team;
-    listAdd(tanks, v);
+    t->dest[X] += 6*direction;
+    t->team = team;
+    listAdd(tanks, t);
 }
 
 void damageTank(int index, Tank* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
     v->health -= dmg;
     if (v->health <= 0) {
-        //undraw the vehicle
+        /*undraw the vehicle
         setWorldBlockF(v->front, world, 0);
         if (inBoundsV(v->mid))
             setWorldBlockF(v->mid, world, 0);
@@ -87,7 +85,33 @@ void damageTank(int index, Tank* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLD
 
         //remove it from the world
         free(listRemove(tanks, index));
+        */
     }
+}
+
+float isNegUtil(float tmp)
+{
+    if (tmp>=0)
+        return 1.0;
+    return -1.0;
+}
+
+bool isGroundBelow(float x, float y, float z, float dir[3], GLubyte world[WORLDX][WORLDY][WORLDZ]) 
+{
+    if (getWorldBlockCustom(x, y-1, z, world)!=0)
+        return true;
+    if (getWorldBlockCustom(x-isNegUtil(dir[X]), y-1, z, world)!=0)
+        return true;
+    if (getWorldBlockCustom(x, y-1, z-isNegUtil(dir[Z]), world)!=0)
+        return true;
+    if (getWorldBlockCustom(x-isNegUtil(dir[X]), y-1, z-isNegUtil(dir[Z]), world)!=0)
+        return true;
+    return false;
+}
+
+bool isGroundBelowV(float pos[3], float dir[3], GLubyte world[WORLDX][WORLDY][WORLDZ]) 
+{
+    return isGroundBelow(pos[X], pos[Y], pos[Z], dir, world);
 }
 
 float moveTankToDest(Tank* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
@@ -113,8 +137,14 @@ float moveTankToDest(Tank* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
         getUnitVector(v->move, v->move);
         memcpy(v->back, v->mid, sizeof(float)*3);
         memcpy(v->mid, v->front, sizeof(float)*3);
+        int diff[3];
+        diff[Z] = ((int)(v->front[X]+v->move[X]) - (int)v->front[X])*(-1);
+        diff[X] = ((int)(v->front[Z]+v->move[Z]) - (int)v->front[Z])*(-1);
 
         int nextBlock = world[(int)(v->front[X] + v->move[X])][(int)(v->front[Y])][(int)(v->front[Z]+v->move[Z])];
+        int nextBlock2 = world[(int)(v->front[X] + v->move[X])+diff[X]][(int)(v->front[Y])][(int)(v->front[Z]+v->move[Z])+diff[Z]];
+
+//TODO, modify for double block
 
         //Check if running into a tower
         if (nextBlock == TOWER_A || nextBlock == TOWER_B) {
@@ -126,9 +156,19 @@ float moveTankToDest(Tank* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
             getUnitVector(v->move, v->move);
             v->front[X] += v->move[X];
             v->front[Z] += v->move[Z];
+        } else if (nextBlock2 == TOWER_A || nextBlock2 == TOWER_B) {
+            //Side step block
+            double angle = atan(v->move[Z]/v->move[X]);
+            angle += 3.14159265/2.0;
+            v->move[X] = 1.0/tan(angle);
+            v->move[Z] = tan(angle);
+            getUnitVector(v->move, v->move);
+            v->front[X] += v->move[X];
+            v->front[Z] += v->move[Z]; 
         }
+
         //Check if 2 blocks in front are occupied, start climbing
-        else if (nextBlock != 0) {
+        else if (nextBlock != 0 || nextBlock2 != 0) {
             //If we can move on top of block in front 
             if (world[(int)(v->front[X] + v->move[X])][(int)(v->front[Y]+1)][(int)(v->front[Z]+v->move[Z])] == 0) {
                 v->front[X] += v->move[X]; 
@@ -136,13 +176,14 @@ float moveTankToDest(Tank* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
             }
             v->front[Y] += 1.0;
         } else {
+            //TODO check all 4 blocks below
             //Check if block below is empty (needs to fall down)
-            if (world[(int)v->front[X]][(int)v->front[Y]-1][(int)v->front[Z]]==0) {
+            if (!isGroundBelowV(v->front, v->currDirection, world)) {
                 v->front[Y] -= 1.0;
             } else {
                 v->front[X] += v->move[X]; 
                 v->front[Z] += v->move[Z]; 
-                if (world[(int)v->front[X]][(int)(v->front[Y]-1.0)][(int)v->front[Z]]==0)
+                if (!isGroundBelowV(v->front, v->currDirection, world))
                     v->front[Y] -= 1.0;
             }
         }
@@ -154,6 +195,8 @@ float moveTankToDest(Tank* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
 //Search for meteors
 void moveTank(Tank* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
+    //TODO look for things to shoot
+    /*
     List* grounded = getGroundedMeteors();
     int numMeteors = listSize(grounded);
     for (int a = 0; a < numMeteors; a++) {
@@ -169,11 +212,56 @@ void moveTank(Tank* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
             a--;
             numMeteors--;
         }
-    }
+    }*/
     float dist = moveTankToDest(v, world, deltaTime);
     //Move vehicle
     if (dist < 0.5)
         generateRandomCord(v->dest);
+}
+
+void setBlockHelper(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ], int blockType)
+{
+    int block = getWorldBlockCustom(x,y,z,world);
+    if (blockType > 0) {
+        if (block > 0)
+            if (block != TANK_A && block != TANK_B)
+                return;
+    } else {
+        if (block != TANK_A && block != TANK_B && block != SELECTED)
+            return;
+    }
+    if (inBounds(x,y,z))
+        setWorldBlockCustom(x,y,z,world,blockType);
+}
+
+void drawTank(Tank* t, GLubyte world[WORLDX][WORLDY][WORLDZ], int blockType)
+{
+    //Draw vehicle
+    setBlockHelper(t->front[X], t->front[Y], t->front[Z], world, blockType);
+    setBlockHelper(t->front[X]-isNegUtil(t->currDirection[X]), t->front[Y], t->front[Z], world, blockType);
+    setBlockHelper(t->front[X], t->front[Y], t->front[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
+    setBlockHelper(t->front[X]-isNegUtil(t->currDirection[X]), t->front[Y], t->front[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
+
+    setBlockHelper(t->front[X], t->front[Y]+1, t->front[Z], world, blockType);
+    setBlockHelper(t->front[X]-isNegUtil(t->currDirection[X]), t->front[Y]+1, t->front[Z], world, blockType);
+    setBlockHelper(t->front[X], t->front[Y]+1, t->front[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
+    setBlockHelper(t->front[X]-isNegUtil(t->currDirection[X]), t->front[Y]+1, t->front[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
+    //Fin
+    //setWorldBlockCustom(t->front[X]-isNegUtil(t->currDirection[X]), t->front[Y]+1, t->front[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
+    if (inBoundsV(t->back)) {
+        setBlockHelper(t->back[X], t->back[Y], t->back[Z], world, blockType);
+        setBlockHelper(t->back[X]-isNegUtil(t->currDirection[X]), t->back[Y], t->back[Z], world, blockType);
+        setBlockHelper(t->back[X], t->back[Y], t->back[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
+        setBlockHelper(t->back[X]-isNegUtil(t->currDirection[X]), t->back[Y], t->back[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
+
+        setBlockHelper(t->back[X], t->back[Y]+1, t->back[Z], world, blockType);
+        setBlockHelper(t->back[X]-isNegUtil(t->currDirection[X]), t->back[Y]+1, t->back[Z], world, blockType);
+        setBlockHelper(t->back[X], t->back[Y]+1, t->back[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
+        setBlockHelper(t->back[X]-isNegUtil(t->currDirection[X]), t->back[Y]+1, t->back[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
+
+        //Fin
+        //setWorldBlockCustom(t->back[X], t->back[Y]+1, t->back[Z], world, blockType);
+    }
 }
 
 void updateTanks(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
@@ -188,14 +276,7 @@ void updateTanks(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
             blockType = TANK_B;
 
         //Undraw vehicle
-        setWorldBlockF(v->front, world, 0);
-        if (inBoundsV(v->mid))
-            setWorldBlockF(v->mid, world, 0);
-        if (inBoundsV(v->back))
-            setWorldBlockF(v->back, world, 0);
-        if (v->hasBlock)
-            if (inBoundsV(v->mid))
-                world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = 0;
+        drawTank(v, world, 0);
 
         //Update state
         moveTank(v, world, deltaTime);
@@ -206,21 +287,14 @@ void updateTanks(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
             listRemove(tanks, i);
             //Spawn a new one
             createTank(v->team);
+            depositPoints(v->team, TANK_COST);
             //Clean it up
             free(v); 
             listsize--;
             i--;
         }
 
-        //Draw vehicle
-        setWorldBlockF(v->front, world, blockType);
-        if (inBoundsV(v->mid))
-            setWorldBlockF(v->mid, world, blockType);
-        if (inBoundsV(v->back))
-            setWorldBlockF(v->back, world, blockType);
-        if (v->hasBlock)
-            if (inBoundsV(v->mid))
-                world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = METEOR;
+        drawTank(v, world, blockType);
     }
 }
 

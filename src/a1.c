@@ -125,7 +125,7 @@ void collisionResponse()
 void computeMiniMap(int map[WORLDX][WORLDZ], GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
     memset(map, 0, sizeof(int)*WORLDX*WORLDZ);
-    for (int y = GROUND_LEVEL+5; y >= 0; y--)
+    for (int y = GROUND_LEVEL+16; y >= 0; y--)
     {
         bool flag = false;
         for (int x = 0; x < WORLDX; x++)
@@ -513,6 +513,7 @@ int main(int argc, char **argv)
         setUserColour(TOWER_B, 39.0/255.0, 74.0/255.0, 96.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
 
         setUserColour(MARKER, 237.0/255.0, 11.0/255.0, 11.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
+        setUserColour(SELECTED, 237.0/255.0, 73.0/255.0, 228.0/255.0, 1.0, 0.2, 0.2, 0.2, 1.0);
 
         float inc = 0.02;
         //Green hill

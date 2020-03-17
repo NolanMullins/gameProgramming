@@ -13,7 +13,7 @@
 #include "graphics.h"
 #include "world.h"
 
-#define PLAYER_START 4
+#define PLAYER_START 26
 #define AI_START 4
 
 #define AI 0

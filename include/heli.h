@@ -13,6 +13,7 @@
 #include "list.h"
 
 #define HELI_VEL 8
+#define HELI_HEIGHT GROUND_LEVEL+15
 
 #define MaxHeliHealth 2
 #define ProjectileDMG 1
@@ -21,21 +22,17 @@ typedef struct heli
 {
     int team;
     int health;
-    int state;
     float dest[3];
     float currDirection[3];
-    float front[3];
-    float mid[3];
-    float back[3];
+    float pos[3];
     float move[3];
-    float loadTime;
-    bool hasBlock;
 } Heli;
 
 void initHeli();
 void createHeli(int team);
 void updateHeli(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);
 void damageHeli(int index, Heli* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLDZ]);
+void drawHeli(Heli* h, GLubyte world[WORLDX][WORLDY][WORLDZ], int blockType);
 List* getHeli();
 int getNumberOfActiveHeli();
 void endGameHeli();

@@ -22,7 +22,10 @@ float distanceVector(float a[3], float b[3]);
 float distanceVector2D(float a[3], float b[3]);
 bool occupySameBlock(float v1[3], float v2[3]);
 
+void rotateVector(float v[3], float radians);
+
 void printVector(float vec[3]);
+void printVectorCustom(float x, float y, float z);
 
 bool inBoundsV(float pos[3]);
 bool inBounds(float x, float y, float z);
@@ -33,8 +36,10 @@ void generateRandomCord(float dest[3]);
 
 int getWorldBlockF(float loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ]);
 int getWorldBlock(int loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ]);
+int getWorldBlockCustom(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ]);
 void setWorldBlockF(float loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ], int block);
 void setWorldBlock(int loc[3], GLubyte world[WORLDX][WORLDY][WORLDZ], int block);
+void setWorldBlockCustom(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ], int block);
 
 void drawNumber(int digit, int screenX, int screenY, int pixelSize);
 

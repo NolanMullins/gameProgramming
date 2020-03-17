@@ -37,6 +37,7 @@ void initVehicles();
 void createVehicle(int team);
 void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);
 void damageVehicle(int index, Vehicle* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLDZ]);
+void drawVehicle(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], int blockType);
 List* getVehicles();
 int getNumberOfActiveVehicles();
 void endGameVehicles();

@@ -262,6 +262,16 @@ void state3Update(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
     }
 }
 
+void drawVehicle(Vehicle* v, GLubyte world[WORLDX][WORLDY][WORLDZ], int blockType) 
+{
+    //Draw vehicle
+    setWorldBlockF(v->front, world, blockType);
+    if (inBoundsV(v->mid))
+        setWorldBlockF(v->mid, world, blockType);
+    if (inBoundsV(v->back))
+        setWorldBlockF(v->back, world, blockType);
+}
+
 void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     int i = -1;
@@ -274,11 +284,7 @@ void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
             blockType = VEHICLE_B;
 
         //Undraw vehicle
-        setWorldBlockF(v->front, world, 0);
-        if (inBoundsV(v->mid))
-            setWorldBlockF(v->mid, world, 0);
-        if (inBoundsV(v->back))
-            setWorldBlockF(v->back, world, 0);
+        drawVehicle(v, world, 0);
         if (v->hasBlock)
             if (inBoundsV(v->mid))
                 world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = 0;
@@ -292,18 +298,14 @@ void updateVehicles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
             listRemove(vehicles, i);
             //Spawn a new one
             createVehicle(v->team);
+            depositPoints(v->team, VEHICLE_COST);
             //Clean it up
             free(v); 
             listsize--;
             i--;
         }
 
-        //Draw vehicle
-        setWorldBlockF(v->front, world, blockType);
-        if (inBoundsV(v->mid))
-            setWorldBlockF(v->mid, world, blockType);
-        if (inBoundsV(v->back))
-            setWorldBlockF(v->back, world, blockType);
+        drawVehicle(v, world, blockType);
         if (v->hasBlock)
             if (inBoundsV(v->mid))
                 world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = METEOR;

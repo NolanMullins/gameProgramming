@@ -31,27 +31,31 @@ void createHeli(int team)
 {
     if (!usePoints(team, HELI_COST))
         return;
-    Heli* v = malloc(sizeof(Heli));
-    memcpy(v->front, getBasePos(team), sizeof(float)*3);
-    memcpy(v->dest, v->front, sizeof(float)*3);
-    memset(v->mid, 0, sizeof(float)*3);
-    memset(v->back, 0, sizeof(float)*3);
-    memset(v->move, 0, sizeof(float)*3);
-    v->health = MaxHeliHealth;
-    v->hasBlock = false;
-    v->mid[X]=-1;
-    v->back[X]=-1;
-    v->state = 0;
+    Heli* h = malloc(sizeof(Heli));
+    memcpy(h->pos, getBasePos(team), sizeof(float)*3);
+    memcpy(h->dest, h->pos, sizeof(float)*3);
+    memset(h->move, 0, sizeof(float)*3);
+    h->health = MaxHeliHealth;
     int direction = 1;
     if (team==1)
         direction = -1;
-    v->front[X] += 3*direction;
-    v->front[Y] += 0;
-    v->front[Z] += 0;
+    h->pos[X] += 0;
+    h->pos[Y] += 4;
+    h->pos[Z] += 0;
     //6 blocks away from center of 
-    v->dest[X] += 6*direction;
-    v->team = team;
-    listAdd(helicopters, v);
+    h->dest[X] += 6*direction;
+    h->team = team;
+    listAdd(helicopters, h);
+}
+
+void drawHeli(Heli* h, GLubyte world[WORLDX][WORLDY][WORLDZ], int blockType)
+{
+    //Draw vehicle
+    setWorldBlockF(h->pos, world, blockType);
+    setWorldBlockCustom(h->pos[X]+1, h->pos[Y], h->pos[Z]+1, world, blockType);
+    setWorldBlockCustom(h->pos[X]+1, h->pos[Y], h->pos[Z]-1, world, blockType);
+    setWorldBlockCustom(h->pos[X]-1, h->pos[Y], h->pos[Z]+1, world, blockType);
+    setWorldBlockCustom(h->pos[X]-1, h->pos[Y], h->pos[Z]-1, world, blockType);
 }
 
 void damageHeli(int index, Heli* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLDZ])
@@ -59,6 +63,7 @@ void damageHeli(int index, Heli* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLD
     v->health -= dmg;
     if (v->health <= 0) {
         //undraw the vehicle
+        /*
         setWorldBlockF(v->front, world, 0);
         if (inBoundsV(v->mid))
             setWorldBlockF(v->mid, world, 0);
@@ -87,48 +92,38 @@ void damageHeli(int index, Heli* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLD
 
         //remove it from the world
         free(listRemove(helicopters, index));
+        */
     }
 }
 
-float moveHeliToDest(Heli* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
+float moveHeliToDest(Heli* h, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     float direction[3], unitDirection[3];
-    memcpy(direction, v->dest, sizeof(float)*3);
-    direction[X] -= v->front[X];
+    memcpy(direction, h->dest, sizeof(float)*3);
+    direction[X] -= h->pos[X];
     direction[Y] = 0;
-    direction[Z] -= v->front[Z];
+    direction[Z] -= h->pos[Z];
 
     if (vectorLength(direction) < 0.01)
         return 0;
 
     getUnitVector(unitDirection, direction);
-    memcpy(v->currDirection, unitDirection, sizeof(float)*3);
+    memcpy(h->currDirection, unitDirection, sizeof(float)*3);
     unitDirection[X] *= HELI_VEL * deltaTime;
     unitDirection[Z] *= HELI_VEL * deltaTime;
     
-    v->move[X] += unitDirection[X]; 
-    v->move[Z] += unitDirection[Z]; 
+    h->move[X] += unitDirection[X]; 
+    h->move[Z] += unitDirection[Z]; 
 
-    if (vectorLength(v->move) >= 1) {
-        getUnitVector(v->move, v->move);
-        memcpy(v->back, v->mid, sizeof(float)*3);
-        memcpy(v->mid, v->front, sizeof(float)*3);
+    //Move
+    if (vectorLength(h->move) >= 1) {
+        getUnitVector(h->move, h->move);
 
-        int nextBlock = world[(int)(v->front[X] + v->move[X])][(int)(v->front[Y])][(int)(v->front[Z]+v->move[Z])];
+        //int nextBlock = world[(int)(v->front[X] + v->move[X])][(int)(v->front[Y])][(int)(v->front[Z]+v->move[Z])];
 
-        //Check if running into a tower
-        if (nextBlock == TOWER_A || nextBlock == TOWER_B) {
-            //Side step block
-            double angle = atan(v->move[Z]/v->move[X]);
-            angle += 3.14159265/2.0;
-            v->move[X] = 1.0/tan(angle);
-            v->move[Z] = tan(angle);
-            getUnitVector(v->move, v->move);
-            v->front[X] += v->move[X];
-            v->front[Z] += v->move[Z];
-        }
+        /*
         //Check if 2 blocks in front are occupied, start climbing
-        else if (nextBlock != 0) {
+        if (nextBlock != 0) {
             //If we can move on top of block in front 
             if (world[(int)(v->front[X] + v->move[X])][(int)(v->front[Y]+1)][(int)(v->front[Z]+v->move[Z])] == 0) {
                 v->front[X] += v->move[X]; 
@@ -146,7 +141,15 @@ float moveHeliToDest(Heli* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
                     v->front[Y] -= 1.0;
             }
         }
-        memset(v->move, 0, sizeof(float)*3);
+        */
+        if (h->pos[Y] < HELI_HEIGHT) {
+            h->pos[Y] += 1;
+        } else {
+            h->pos[X] += h->move[X]; 
+            h->pos[Z] += h->move[Z]; 
+
+        }
+        memset(h->move, 0, sizeof(float)*3);
     }
     return vectorLength(direction);
 }
@@ -155,6 +158,8 @@ void moveHeli(Heli* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     List* grounded = getGroundedMeteors();
     int numMeteors = listSize(grounded);
+    //TODO look for targets
+    /*
     for (int a = 0; a < numMeteors; a++) {
         GroundedMeteor* m = (GroundedMeteor*)listGet(grounded, a);
         if (getWorldBlockF(m->pos, world) == METEOR) {
@@ -169,6 +174,7 @@ void moveHeli(Heli* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
             numMeteors--;
         }
     }
+    */
     float dist = moveHeliToDest(v, world, deltaTime);
     //Move vehicle
     if (dist < 0.5)
@@ -181,45 +187,32 @@ void updateHeli(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
     int listsize = listSize(helicopters);
     while (++i < listsize)
     {
-        Heli* v = (Heli*)listGet(helicopters, i);
+        Heli* h = (Heli*)listGet(helicopters, i);
         int blockType = HELI_A;
-        if (v->team == 1)
+        if (h->team == 1)
             blockType = HELI_B;
 
         //Undraw vehicle
-        setWorldBlockF(v->front, world, 0);
-        if (inBoundsV(v->mid))
-            setWorldBlockF(v->mid, world, 0);
-        if (inBoundsV(v->back))
-            setWorldBlockF(v->back, world, 0);
-        if (v->hasBlock)
-            if (inBoundsV(v->mid))
-                world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = 0;
+        drawHeli(h, world, 0);
 
         //Update state
-        moveHeli(v, world, deltaTime);
+        moveHeli(h, world, deltaTime);
 
         //Safety check
-        if (!inBoundsV(v->front)) {
+        if (!inBoundsV(h->pos)) {
             //remove it from the world
             listRemove(helicopters, i);
             //Spawn a new one
-            createHeli(v->team);
+            createHeli(h->team);
+            depositPoints(h->team, HELI_COST);
             //Clean it up
-            free(v); 
+            free(h); 
             listsize--;
             i--;
         }
 
         //Draw vehicle
-        setWorldBlockF(v->front, world, blockType);
-        if (inBoundsV(v->mid))
-            setWorldBlockF(v->mid, world, blockType);
-        if (inBoundsV(v->back))
-            setWorldBlockF(v->back, world, blockType);
-        if (v->hasBlock)
-            if (inBoundsV(v->mid))
-                world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = METEOR;
+        drawHeli(h, world, blockType);
     }
 }
 

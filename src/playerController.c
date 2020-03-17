@@ -17,6 +17,8 @@
 #include "projectile.h"
 #include "playerController.h"
 #include "vehicle.h"
+#include "tank.h"
+#include "heli.h"
 #include "utils.h"
 #include "tower.h"
 #include "score.h"
@@ -35,6 +37,8 @@ void initPlayer(float spawnLocation[3])
     playerOrientation[Y] = 0;
     prevMarkerPos[X] = -1;
     createVehicle(PLAYER);
+    createTank(PLAYER);
+    selectedIndex = -1;
 }
 
 bool checkCollision(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ])
@@ -113,6 +117,113 @@ void getLocationInDirection(float loc[3], float playerPos[3], float direction[3]
     }
 }
 
+void drawSelectedVehicle(GLubyte world[WORLDX][WORLDY][WORLDZ], bool selected)
+{
+    int total = 0;
+    if (selectedIndex < 0)
+        return;
+    //int numVehicles = getNumberOfActiveVehicles();
+    Node* vNode = getVehicles()->list;
+    //Check first vehicle
+    Vehicle* v = NULL;
+    if (vNode != NULL)
+        v = (Vehicle*)vNode->data;
+    if (selectedIndex==0 && v != NULL && v->team==PLAYER) {
+        if (selected)
+            drawVehicle(v, world, SELECTED);
+        else 
+            drawVehicle(v, world, v->team+VEHICLE_A);
+        return;
+    }
+    //Check other vehicles in list
+    int index = 0;
+    if (v != NULL && v->team==PLAYER)
+        index++;
+    while (vNode != NULL && (vNode = vNode->next) != NULL) {
+        v = (Vehicle*)vNode->data;
+        if (v->team != PLAYER)
+            continue;
+        if (index==selectedIndex) {
+            if (selected)
+                drawVehicle(v, world, SELECTED);
+            else 
+                drawVehicle(v, world, v->team+VEHICLE_A);
+            return;
+        }
+        index++;
+    }
+    total = index;
+
+    //Check first tank
+    Node* tNode = getTanks()->list;
+    //Check first tank
+    Tank* t = NULL;
+    if (tNode != NULL)
+        t = (Tank*)tNode->data;
+    int searchIndex = selectedIndex - total;
+    if (searchIndex==0 && t != NULL && t->team==PLAYER) {
+        if (selected)
+            drawTank(t, world, SELECTED);
+        else 
+            drawTank(t, world, t->team+TANK_A);
+        return;
+    }
+
+    index = 0;
+    //Check other tank in list
+    if (t != NULL && t->team==PLAYER)
+        index++;
+    while (tNode != NULL && (tNode = tNode->next) != NULL) {
+        t = (Tank*)tNode->data;
+        if (t->team != PLAYER)
+            continue;
+        if (index==searchIndex) {
+            if (selected)
+                drawTank(t, world, SELECTED);
+            else
+                drawTank(t, world, t->team+TANK_A);
+            return;
+        }
+        index++;
+    }
+    total += index;
+
+    //Check first heli
+    Node* hNode = getHeli()->list;
+    //Check first heli
+    Heli* h = NULL;
+    if (hNode != NULL)
+        h = (Heli*)hNode->data;
+    searchIndex = selectedIndex - total;
+    if (searchIndex==0 && h != NULL && h->team==PLAYER) {
+        if (selected)
+            drawHeli(h, world, SELECTED);
+        else 
+            drawHeli(h, world, t->team+HELI_A);
+        return;
+    }
+
+    index = 0;
+    //Check other tank in list
+    if (h != NULL && h->team==PLAYER)
+        index++;
+    while (hNode != NULL && (hNode = hNode->next) != NULL) {
+        h = (Heli*)hNode->data;
+        if (h->team != PLAYER)
+            continue;
+        if (index==searchIndex) {
+            if (selected)
+                drawHeli(h, world, SELECTED);
+            else
+                drawHeli(h, world, h->team+HELI_A);
+            return;
+        }
+        index++;
+    }
+
+    selectedIndex = -1;
+}
+
 void preUpdatePlayer(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
     if (towerMode)
@@ -123,6 +234,18 @@ void preUpdatePlayer(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
             setWorldBlockF(prevMarkerPos, world, 0);
         }
     }
+
+    drawSelectedVehicle(world, false);
+
+    /*
+    if (selectedIndex >= 0 && selectedIndex < numVehicles) {
+        Vehicle* v = (Vehicle*)listGet(getVehicles(), selectedIndex);
+        drawVehicle(v, world, 0);
+    } else if (selectedIndex-numVehicles < getNumberOfActiveTanks()) {
+        Tank* t = (Tank*)listGet(getTanks(), selectedIndex-numVehicles);
+        drawTank(t, world, t->team+TANK_A);
+    }
+    */
 }
 
 void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, bool b, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
@@ -195,6 +318,9 @@ void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, b
     memcpy(playerLocation, pos, sizeof(float)*3);
     playerOrientation[0] = rotx;
     playerOrientation[1] = roty;
+
+    //Draw selected vehicle
+    drawSelectedVehicle(world, true);
 }
 
 void playerInput(int button, int state, int x, int y)
@@ -231,8 +357,14 @@ void playerKeyboardInput(unsigned char key, GLubyte world[WORLDX][WORLDY][WORLDZ
 {
     //printf("input: %c\n", key);
     switch (key) {
+        case 'h':
+            createHeli(PLAYER);
+            break;
+        case 'r':
+            createTank(PLAYER);
+            break;
         case 't':
-            createVehicle(1);
+            createVehicle(PLAYER);
             break;
         case 'y':
             if (!towerMode) {
@@ -247,6 +379,15 @@ void playerKeyboardInput(unsigned char key, GLubyte world[WORLDX][WORLDY][WORLDZ
             break;
         case 'e':
             towerMode = false;
+            break;
+        case '.':
+            selectedIndex++;
+            break;
+        case ',':
+            selectedIndex--;
+            if (selectedIndex < -1)
+                selectedIndex = -1;
+            break;
     }
 }
 
