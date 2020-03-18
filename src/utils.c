@@ -144,6 +144,16 @@ void generateRandomCord(float dest[3])
     dest[Z] = rand()%(WORLDZ-10)+5;
 }
 
+void pauseGame(bool p)
+{
+    paused = p;
+}
+
+bool isPaused()
+{
+    return paused;
+}
+
 void drawPixel(int x, int y, int size)
 {
     draw2Dbox(x,y,x+size,y+size);

@@ -405,6 +405,7 @@ void playerKeyboardInput(unsigned char key, GLubyte world[WORLDX][WORLDY][WORLDZ
                 destMode = true;
                 towerMode = false;
             } else {
+                setDest = true;
                 destMode = false;
                 if (inBoundsV(prevMarkerPos)) {
                     setWorldBlockF(prevMarkerPos, world, 0);
@@ -412,13 +413,7 @@ void playerKeyboardInput(unsigned char key, GLubyte world[WORLDX][WORLDY][WORLDZ
             }
             break;
         case 'p':
-            if (destMode) {
-                setDest = true;
-                destMode = false;
-                if (inBoundsV(prevMarkerPos)) {
-                    setWorldBlockF(prevMarkerPos, world, 0);
-                }
-            }
+            pauseGame(!isPaused());
             break;
         case 'y':
             if (!towerMode) {
@@ -435,6 +430,7 @@ void playerKeyboardInput(unsigned char key, GLubyte world[WORLDX][WORLDY][WORLDZ
             break;
         case 'e':
             towerMode = false;
+            destMode = false;
             if (inBoundsV(prevMarkerPos)) {
                 setWorldBlockF(prevMarkerPos, world, 0);
             }

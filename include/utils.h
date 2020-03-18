@@ -43,4 +43,7 @@ void setWorldBlockCustom(float x, float y, float z, GLubyte world[WORLDX][WORLDY
 
 void drawNumber(int digit, int screenX, int screenY, int pixelSize);
 
+void pauseGame(bool p);
+bool isPaused();
+
 #endif
