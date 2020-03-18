@@ -19,6 +19,7 @@
 #include "projectile.h"
 #include "vehicle.h"
 #include "tower.h"
+#include "score.h"
 
 List* projectiles;
 
@@ -105,7 +106,7 @@ int getAvailableID()
     return id;
 }
 
-bool createProjectile(int type, float spawnLocation[3], float velocity[3])
+bool createProjectile(int type, int team, float spawnLocation[3], float velocity[3])
 {
     int id = getAvailableID();
     if (id == -1)
@@ -118,6 +119,7 @@ bool createProjectile(int type, float spawnLocation[3], float velocity[3])
     memcpy(obj->velocity, velocity, sizeof(float)*3);
     obj->type = type;
     obj->id = id;
+    obj->team = team;
     createMob(id, obj->pos[X], obj->pos[Y], obj->pos[Z], 0);
     showMob(id);
     listAdd(projectiles, obj);
@@ -155,6 +157,8 @@ void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
             if (block == TOWER_A || block == TOWER_B) {
                 Node* towerNode = getTowers()->list;
                 Tower* t = (Tower*)towerNode->data;
+                if (block == TOWER_A+obj->team)
+                    continue;
                 float tmp[3] = {t->pos[X], t->pos[Y], t->pos[Z]};
                 int a = 0;
                 if (distanceVector2D(tmp, c) < TOWER_RAD) {
@@ -174,6 +178,8 @@ void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
             if (block == VEHICLE_A || block == VEHICLE_B) {
                 Node* vics = getVehicles()->list;
                 Vehicle* v = (Vehicle*)vics->data;
+                if (block == VEHICLE_A+obj->team)
+                    continue;
                 int a = 0;
                 if (checkVehicleCollision(v, c)) 
                     damageVehicle(a, v, ProjectileDMG, world);

@@ -20,12 +20,13 @@ typedef struct projectile
 {
     int type;
     int id;
+    int team;
     float pos[3];
     float velocity[3];
 } Projectile;
 
 void initProjectiles();
-bool createProjectile(int type, float spawnLocation[3], float velocity[3]);
+bool createProjectile(int type, int team, float spawnLocation[3], float velocity[3]);
 void updateProjectiles(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime);
 List* getProjectiles();
 int getNumberOfActiveProjectiles();

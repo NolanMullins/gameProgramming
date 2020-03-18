@@ -191,7 +191,7 @@ void updateTower(Tower* t, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTim
             proj[a] += aim[a]*2;
             aim[a] *= TOWER_PROJECTILE_SPEED;
         }
-        if (createProjectile(0, proj, aim))
+        if (createProjectile(0,t->team, proj, aim))
             t->coolDown = TOWER_COOL_DOWN;
     }
 }

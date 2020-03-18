@@ -24,11 +24,15 @@
 #include "score.h"
 
 bool towerMode;
+bool destMode;
+bool setDest;
 float prevMarkerPos[3];
 
 void initPlayer(float spawnLocation[3]) 
 {
     towerMode = false;
+    destMode = false;
+    setDest = false;
     spawnLocation[0] = -50;
     spawnLocation[1] = -20;
     spawnLocation[2] = -50;
@@ -133,6 +137,13 @@ void drawSelectedVehicle(GLubyte world[WORLDX][WORLDY][WORLDZ], bool selected)
             drawVehicle(v, world, SELECTED);
         else 
             drawVehicle(v, world, v->team+VEHICLE_A);
+        if (setDest == true) {
+            if (v->state < 3) {
+                v->state = 0;
+                memcpy(v->dest, prevMarkerPos, sizeof(float)*3);
+            }
+            setDest = false;
+        }
         return;
     }
     //Check other vehicles in list
@@ -148,6 +159,13 @@ void drawSelectedVehicle(GLubyte world[WORLDX][WORLDY][WORLDZ], bool selected)
                 drawVehicle(v, world, SELECTED);
             else 
                 drawVehicle(v, world, v->team+VEHICLE_A);
+            if (setDest == true) {
+                if (v->state < 3) {
+                    v->state = 0;
+                    memcpy(v->dest, prevMarkerPos, sizeof(float)*3);
+                }
+                setDest = false;
+            }
             return;
         }
         index++;
@@ -166,6 +184,10 @@ void drawSelectedVehicle(GLubyte world[WORLDX][WORLDY][WORLDZ], bool selected)
             drawTank(t, world, SELECTED);
         else 
             drawTank(t, world, t->team+TANK_A);
+        if (setDest == true) {
+            memcpy(t->dest, prevMarkerPos, sizeof(float)*3);
+            setDest = false;
+        }
         return;
     }
 
@@ -182,6 +204,10 @@ void drawSelectedVehicle(GLubyte world[WORLDX][WORLDY][WORLDZ], bool selected)
                 drawTank(t, world, SELECTED);
             else
                 drawTank(t, world, t->team+TANK_A);
+            if (setDest == true) {
+                memcpy(t->dest, prevMarkerPos, sizeof(float)*3);
+                setDest = false;
+            }
             return;
         }
         index++;
@@ -200,6 +226,10 @@ void drawSelectedVehicle(GLubyte world[WORLDX][WORLDY][WORLDZ], bool selected)
             drawHeli(h, world, SELECTED);
         else 
             drawHeli(h, world, t->team+HELI_A);
+        if (setDest == true) {
+            memcpy(h->dest, prevMarkerPos, sizeof(float)*3);
+            setDest = false;
+        }
         return;
     }
 
@@ -216,6 +246,10 @@ void drawSelectedVehicle(GLubyte world[WORLDX][WORLDY][WORLDZ], bool selected)
                 drawHeli(h, world, SELECTED);
             else
                 drawHeli(h, world, h->team+HELI_A);
+            if (setDest == true) {
+                memcpy(h->dest, prevMarkerPos, sizeof(float)*3);
+                setDest = false;
+            }
             return;
         }
         index++;
@@ -226,7 +260,7 @@ void drawSelectedVehicle(GLubyte world[WORLDX][WORLDY][WORLDZ], bool selected)
 
 void preUpdatePlayer(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
-    if (towerMode)
+    if (towerMode || destMode)
     {
         //undraw tower
         if (inBoundsV(prevMarkerPos)) 
@@ -296,7 +330,7 @@ void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, b
         pos[Z] = newLoc[Z];
     }
 
-    if (towerMode)
+    if (towerMode || destMode)
     {
         float x = sin(playerOrientation[1])*cos(playerOrientation[0]);
         float y = -sin(playerOrientation[0]);
@@ -309,7 +343,7 @@ void updatePlayerPosition(float pos[3], float view[3], bool f, bool l, bool r, b
         if (inBoundsV(markerPos)) 
         {
             int block = TOWER_B;
-            if (!validTowerLoc(1, (int)markerPos[X], (int)markerPos[Z], world))
+            if (!destMode && !validTowerLoc(1, (int)markerPos[X], (int)markerPos[Z], world))
                 block = MARKER;
             setWorldBlockF(markerPos, world, block);
         }
@@ -335,7 +369,7 @@ void playerInput(int button, int state, int x, int y)
         #define SPEED 40
         float velocity[3] = {x*SPEED, y*SPEED, z*SPEED};
         float location[3] = {-playerLocation[X], -playerLocation[Y], -playerLocation[Z]};
-        createProjectile(0, location, velocity);
+        createProjectile(0, PLAYER, location, velocity);
     }
     */
     /*
@@ -355,7 +389,7 @@ void playerInput(int button, int state, int x, int y)
 
 void playerKeyboardInput(unsigned char key, GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
-    //printf("input: %c\n", key);
+    //printf("input: '%c'\n", key);
     switch (key) {
         case 'h':
             createHeli(PLAYER);
@@ -366,9 +400,31 @@ void playerKeyboardInput(unsigned char key, GLubyte world[WORLDX][WORLDY][WORLDZ
         case 't':
             createVehicle(PLAYER);
             break;
+        case '/':
+            if (!destMode) {
+                destMode = true;
+                towerMode = false;
+            } else {
+                destMode = false;
+                if (inBoundsV(prevMarkerPos)) {
+                    setWorldBlockF(prevMarkerPos, world, 0);
+                }
+            }
+            break;
+        case 'p':
+            if (destMode) {
+                setDest = true;
+                destMode = false;
+                if (inBoundsV(prevMarkerPos)) {
+                    setWorldBlockF(prevMarkerPos, world, 0);
+                }
+            }
+            break;
         case 'y':
             if (!towerMode) {
+                selectedIndex = -1;
                 towerMode = true;
+                destMode = false;
             } else {
                 if (inBoundsV(prevMarkerPos)) {
                     setWorldBlockF(prevMarkerPos, world, 0);
@@ -379,6 +435,9 @@ void playerKeyboardInput(unsigned char key, GLubyte world[WORLDX][WORLDY][WORLDZ
             break;
         case 'e':
             towerMode = false;
+            if (inBoundsV(prevMarkerPos)) {
+                setWorldBlockF(prevMarkerPos, world, 0);
+            }
             break;
         case '.':
             selectedIndex++;
@@ -387,6 +446,18 @@ void playerKeyboardInput(unsigned char key, GLubyte world[WORLDX][WORLDY][WORLDZ
             selectedIndex--;
             if (selectedIndex < -1)
                 selectedIndex = -1;
+            break;
+        case ' ':
+            if (usePoints(PLAYER, 3)) {
+                float x = sin(playerOrientation[1])*cos(playerOrientation[0]);
+                float y = -sin(playerOrientation[0]);
+                float z = -cos(playerOrientation[1])*cos(playerOrientation[0]);
+
+                #define SPEED 40
+                float velocity[3] = {x*SPEED, y*SPEED, z*SPEED};
+                float location[3] = {-playerLocation[X], -playerLocation[Y], -playerLocation[Z]};
+                createProjectile(0, PLAYER, location, velocity);
+            }
             break;
     }
 }

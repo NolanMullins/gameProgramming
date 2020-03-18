@@ -802,9 +802,9 @@ static int lighton = 1;
          if (flycontrol == 0) flycontrol = 1;
          else flycontrol = 0;
          break;
-      case ' ':		// toggle space flag
+      /*case ' ':		// toggle space flag
          space = 1;
-         break;
+         break;*/
       case 'm':		// toggle map display, 0=none, 1=small, 2=large
          displayMap++;
          if (displayMap > 2)
