@@ -209,7 +209,7 @@ void setBlockHelper(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WOR
     int block = getWorldBlockCustom(x,y,z,world);
     if (blockType > 0) {
         if (block > 0)
-            if (block != TANK_A && block != TANK_B)
+            if (block != TANK_A && block != TANK_B && block != SELECTED)
                 return;
     } else {
         if (block != TANK_A && block != TANK_B && block != SELECTED)
