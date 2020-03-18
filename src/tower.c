@@ -142,44 +142,16 @@ void updateTower(Tower* t, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTim
     for (int h=t->pos[Y]-TOWER_HEIGHT-3; h < t->pos[Y]; h++)
         world[t->pos[X]][h][t->pos[Z]] = TOWER_A+t->team; 
 
-    //Look for targets
-    List* targetList = getVehicles();
-    float closestTargetPos[3] = {-1,-1,-1};
-    float targetDist = 100;
-    float towerPos[3] = {t->pos[0], t->pos[1]-1, t->pos[2]};
 
-    Node* towerNode = getTowers()->list;
-    Tower* tNode = (Tower*)towerNode->data;
-    float tmp[3] = {tNode->pos[X], tNode->pos[Y], tNode->pos[Z]};
-    int a = 0;
-    if (tNode->team != t->team && distanceVector2D(tmp, towerPos) < TOWER_RANGE) {
-        targetDist = distanceVector2D(tmp, towerPos);
-        memcpy(closestTargetPos, tmp, sizeof(float)*3);
-    }
-    while ((towerNode = towerNode->next) != NULL) {
-        tNode = (Tower*)towerNode->data;
-        if (tNode->team == t->team)
-            continue;
-        float tPos[3] = {tNode->pos[X], tNode->pos[Y], tNode->pos[Z]};
-        float dist = distanceVector2D(tPos, towerPos);
-        if (dist < TOWER_RANGE && dist < targetDist) {
-            targetDist = dist;
-            memcpy(closestTargetPos, tPos, sizeof(float)*3);
-        }
-    }
-    if (!inBoundsV(closestTargetPos))
-        for (int a = 0; a < listSize(targetList); a++) {
-            Vehicle* v = (Vehicle*)listGet(targetList, a);
-            if (v->team == t->team)
-                continue;
-            float dist = distanceVector2D(towerPos, v->front);
-            if (dist < TOWER_RANGE && dist < targetDist) {
-                memcpy(closestTargetPos, v->front, sizeof(float)*3);
-                targetDist = dist;
-            }
-        }
+    float towerPos[3] = {t->pos[0], t->pos[1]-1, t->pos[2]};
+    float closestTargetPos[3] = {-1,-1,-1};
+    //Look for targets
+    getClosestTarget(t->team, TOWER_RANGE, towerPos, closestTargetPos);
+
     //shoot at target
     if (inBoundsV(closestTargetPos)) {
+        if (closestTargetPos[Y] > GROUND_LEVEL+12)
+            towerPos[Y] += 3;
         float aim[3];
         memcpy(aim, closestTargetPos, sizeof(float)*3);
         for (int a = 0; a < 3; a++)
@@ -189,7 +161,7 @@ void updateTower(Tower* t, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTim
         memcpy(proj, towerPos, sizeof(float)*3);
         for (int a = 0; a < 3; a++) {
             proj[a] += aim[a]*2;
-            aim[a] *= TOWER_PROJECTILE_SPEED;
+            aim[a] *= PROJECTILE_SPEED;
         }
         if (createProjectile(0,t->team, proj, aim))
             t->coolDown = TOWER_COOL_DOWN;

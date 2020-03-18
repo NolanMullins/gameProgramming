@@ -7,9 +7,15 @@
 
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "graphics.h"
 #include "utils.h"
+#include "tower.h"
+#include "vehicle.h"
+#include "tank.h"
+#include "heli.h"
 
 extern void draw2Dline(int, int, int, int, int);
 extern void draw2Dbox(int, int, int, int);
@@ -69,6 +75,18 @@ float distanceVector2D(float a[3], float b[3])
     c[1] = 0;
     c[2] = a[2]-b[2];
     return vectorLength(c);
+}
+
+float isNegUtil(float tmp)
+{
+    if (tmp>=0)
+        return 1.0;
+    return -1.0;
+}
+
+bool occupySameBlockCustom(float x, float y, float z, float v2[3])
+{
+    return ((int)x == (int)v2[X] && (int)y == (int)v2[Y] && (int)z == (int)v2[Z]);
 }
 
 bool occupySameBlock(float v1[3], float v2[3])
@@ -152,6 +170,73 @@ void pauseGame(bool p)
 bool isPaused()
 {
     return paused;
+}
+
+void getClosestTarget(int team, float range, float pos[3], float closestTargetPos[3]) 
+{
+    //Look for targets
+    List* targetList = getVehicles();
+    for (int a = 0; a < 3; a++)
+        closestTargetPos[a] = -1;
+    float targetDist = 100;
+    //float towerPos[3] = {t->pos[0], t->pos[1]-1, t->pos[2]};
+
+    Node* towerNode = getTowers()->list;
+    if (towerNode != NULL) {
+        Tower* tNode = (Tower*)towerNode->data;
+        float tmp[3] = {tNode->pos[X], tNode->pos[Y], tNode->pos[Z]};
+        int a = 0;
+        if (tNode->team != team && distanceVector2D(tmp, pos) < range) {
+            targetDist = distanceVector2D(tmp, pos);
+            memcpy(closestTargetPos, tmp, sizeof(float)*3);
+        }
+        while ((towerNode = towerNode->next) != NULL) {
+            tNode = (Tower*)towerNode->data;
+            if (tNode->team == team)
+                continue;
+            float tPos[3] = {tNode->pos[X], tNode->pos[Y], tNode->pos[Z]};
+            float dist = distanceVector2D(tPos, pos);
+            if (dist < range && dist < targetDist) {
+                targetDist = dist;
+                memcpy(closestTargetPos, tPos, sizeof(float)*3);
+            }
+        }
+    }
+    //if (!inBoundsV(closestTargetPos))
+    for (int a = 0; a < listSize(targetList); a++) {
+        Vehicle* v = (Vehicle*)listGet(targetList, a);
+        if (v->team == team)
+            continue;
+        float dist = distanceVector2D(pos, v->front);
+        if (dist < range && dist < targetDist) {
+            memcpy(closestTargetPos, v->front, sizeof(float)*3);
+            targetDist = dist;
+        }
+    }
+
+    targetList = getTanks();
+    for (int a = 0; a < listSize(targetList); a++) {
+        Tank* t = (Tank*)listGet(targetList, a);
+        if (t->team == team)
+            continue;
+        float dist = distanceVector2D(pos, t->front);
+        if (dist < range && dist < targetDist) {
+            memcpy(closestTargetPos, t->front, sizeof(float)*3);
+            targetDist = dist;
+        }
+    }
+
+    targetList = getHeli();
+    for (int a = 0; a < listSize(targetList); a++) {
+        Heli* h = (Heli*)listGet(targetList, a);
+        if (h->team == team)
+            continue;
+        float dist = distanceVector2D(pos, h->pos);
+        if (dist < range && dist < targetDist) {
+            memcpy(closestTargetPos, h->pos, sizeof(float)*3);
+            targetDist = dist;
+        }
+    }
 }
 
 void drawPixel(int x, int y, int size)

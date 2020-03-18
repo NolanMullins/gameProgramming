@@ -16,6 +16,8 @@
 
 #define MaxTankHealth 4
 #define ProjectileDMG 1
+#define TANK_COOL_DOWN 5
+#define TANK_RANGE 15
 
 typedef struct tank
 {
@@ -27,6 +29,7 @@ typedef struct tank
     float mid[3];
     float back[3];
     float move[3];
+    float cooldown;
 } Tank;
 
 void initTanks();

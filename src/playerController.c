@@ -41,7 +41,6 @@ void initPlayer(float spawnLocation[3])
     playerOrientation[Y] = 0;
     prevMarkerPos[X] = -1;
     createVehicle(PLAYER);
-    createTank(PLAYER);
     selectedIndex = -1;
 }
 
@@ -124,37 +123,16 @@ void getLocationInDirection(float loc[3], float playerPos[3], float direction[3]
 void drawSelectedVehicle(GLubyte world[WORLDX][WORLDY][WORLDZ], bool selected)
 {
     int total = 0;
+    int index = 0;
     if (selectedIndex < 0)
         return;
-    //int numVehicles = getNumberOfActiveVehicles();
     Node* vNode = getVehicles()->list;
-    //Check first vehicle
-    Vehicle* v = NULL;
-    if (vNode != NULL)
-        v = (Vehicle*)vNode->data;
-    if (selectedIndex==0 && v != NULL && v->team==PLAYER) {
-        if (selected)
-            drawVehicle(v, world, SELECTED);
-        else 
-            drawVehicle(v, world, v->team+VEHICLE_A);
-        if (setDest == true) {
-            if (v->state < 3) {
-                v->state = 0;
-                memcpy(v->dest, prevMarkerPos, sizeof(float)*3);
-            }
-            setDest = false;
-        }
-        return;
-    }
-    //Check other vehicles in list
-    int index = 0;
-    if (v != NULL && v->team==PLAYER)
-        index++;
-    while (vNode != NULL && (vNode = vNode->next) != NULL) {
-        v = (Vehicle*)vNode->data;
-        if (v->team != PLAYER)
-            continue;
-        if (index==selectedIndex) {
+    if (vNode != NULL) {
+        //Check first vehicle
+        Vehicle* v = NULL;
+        if (vNode != NULL)
+            v = (Vehicle*)vNode->data;
+        if (selectedIndex==0 && v != NULL && v->team==PLAYER) {
             if (selected)
                 drawVehicle(v, world, SELECTED);
             else 
@@ -168,41 +146,45 @@ void drawSelectedVehicle(GLubyte world[WORLDX][WORLDY][WORLDZ], bool selected)
             }
             return;
         }
-        index++;
+        //Check other vehicles in list
+        index = 0;
+        if (v != NULL && v->team==PLAYER)
+            index++;
+        while (vNode != NULL && (vNode = vNode->next) != NULL) {
+            v = (Vehicle*)vNode->data;
+            if (v->team != PLAYER)
+                continue;
+            if (index==selectedIndex) {
+                if (selected)
+                    drawVehicle(v, world, SELECTED);
+                else 
+                    drawVehicle(v, world, v->team+VEHICLE_A);
+                if (setDest == true) {
+                    if (v->state < 3) {
+                        v->state = 0;
+                        memcpy(v->dest, prevMarkerPos, sizeof(float)*3);
+                    }
+                    setDest = false;
+                }
+                return;
+            }
+            index++;
+        }
+        total = index;
     }
-    total = index;
 
     //Check first tank
     Node* tNode = getTanks()->list;
-    //Check first tank
-    Tank* t = NULL;
-    if (tNode != NULL)
-        t = (Tank*)tNode->data;
-    int searchIndex = selectedIndex - total;
-    if (searchIndex==0 && t != NULL && t->team==PLAYER) {
-        if (selected)
-            drawTank(t, world, SELECTED);
-        else 
-            drawTank(t, world, t->team+TANK_A);
-        if (setDest == true) {
-            memcpy(t->dest, prevMarkerPos, sizeof(float)*3);
-            setDest = false;
-        }
-        return;
-    }
-
-    index = 0;
-    //Check other tank in list
-    if (t != NULL && t->team==PLAYER)
-        index++;
-    while (tNode != NULL && (tNode = tNode->next) != NULL) {
-        t = (Tank*)tNode->data;
-        if (t->team != PLAYER)
-            continue;
-        if (index==searchIndex) {
+    if (tNode != NULL) {
+        //Check first tank
+        Tank* t = NULL;
+        if (tNode != NULL)
+            t = (Tank*)tNode->data;
+        int searchIndex = selectedIndex - total;
+        if (searchIndex==0 && t != NULL && t->team==PLAYER) {
             if (selected)
                 drawTank(t, world, SELECTED);
-            else
+            else 
                 drawTank(t, world, t->team+TANK_A);
             if (setDest == true) {
                 memcpy(t->dest, prevMarkerPos, sizeof(float)*3);
@@ -210,41 +192,43 @@ void drawSelectedVehicle(GLubyte world[WORLDX][WORLDY][WORLDZ], bool selected)
             }
             return;
         }
-        index++;
+
+        index = 0;
+        //Check other tank in list
+        if (t != NULL && t->team==PLAYER)
+            index++;
+        while (tNode != NULL && (tNode = tNode->next) != NULL) {
+            t = (Tank*)tNode->data;
+            if (t->team != PLAYER)
+                continue;
+            if (index==searchIndex) {
+                if (selected)
+                    drawTank(t, world, SELECTED);
+                else
+                    drawTank(t, world, t->team+TANK_A);
+                if (setDest == true) {
+                    memcpy(t->dest, prevMarkerPos, sizeof(float)*3);
+                    setDest = false;
+                }
+                return;
+            }
+            index++;
+        }
+        total += index;
     }
-    total += index;
 
     //Check first heli
     Node* hNode = getHeli()->list;
-    //Check first heli
-    Heli* h = NULL;
-    if (hNode != NULL)
-        h = (Heli*)hNode->data;
-    searchIndex = selectedIndex - total;
-    if (searchIndex==0 && h != NULL && h->team==PLAYER) {
-        if (selected)
-            drawHeli(h, world, SELECTED);
-        else 
-            drawHeli(h, world, t->team+HELI_A);
-        if (setDest == true) {
-            memcpy(h->dest, prevMarkerPos, sizeof(float)*3);
-            setDest = false;
-        }
-        return;
-    }
-
-    index = 0;
-    //Check other tank in list
-    if (h != NULL && h->team==PLAYER)
-        index++;
-    while (hNode != NULL && (hNode = hNode->next) != NULL) {
-        h = (Heli*)hNode->data;
-        if (h->team != PLAYER)
-            continue;
-        if (index==searchIndex) {
+    if (hNode != NULL) {
+        //Check first heli
+        Heli* h = NULL;
+        if (hNode != NULL)
+            h = (Heli*)hNode->data;
+        int searchIndex = selectedIndex - total;
+        if (searchIndex==0 && h != NULL && h->team==PLAYER) {
             if (selected)
                 drawHeli(h, world, SELECTED);
-            else
+            else 
                 drawHeli(h, world, h->team+HELI_A);
             if (setDest == true) {
                 memcpy(h->dest, prevMarkerPos, sizeof(float)*3);
@@ -252,7 +236,28 @@ void drawSelectedVehicle(GLubyte world[WORLDX][WORLDY][WORLDZ], bool selected)
             }
             return;
         }
-        index++;
+
+        index = 0;
+        //Check other tank in list
+        if (h != NULL && h->team==PLAYER)
+            index++;
+        while (hNode != NULL && (hNode = hNode->next) != NULL) {
+            h = (Heli*)hNode->data;
+            if (h->team != PLAYER)
+                continue;
+            if (index==searchIndex) {
+                if (selected)
+                    drawHeli(h, world, SELECTED);
+                else
+                    drawHeli(h, world, h->team+HELI_A);
+                if (setDest == true) {
+                    memcpy(h->dest, prevMarkerPos, sizeof(float)*3);
+                    setDest = false;
+                }
+                return;
+            }
+            index++;
+        }
     }
 
     selectedIndex = -1;

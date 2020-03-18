@@ -19,6 +19,8 @@
 #include "heli.h"
 #include "meteor.h"
 #include "score.h"
+#include "projectile.h"
+#include "projectile.h"
 
 List* helicopters;
 
@@ -36,6 +38,7 @@ void createHeli(int team)
     memcpy(h->dest, h->pos, sizeof(float)*3);
     memset(h->move, 0, sizeof(float)*3);
     h->health = MaxHeliHealth;
+    h->cooldown =HELI_COOL_DOWN;
     int direction = 1;
     if (team==1)
         direction = -1;
@@ -58,41 +61,15 @@ void drawHeli(Heli* h, GLubyte world[WORLDX][WORLDY][WORLDZ], int blockType)
     setWorldBlockCustom(h->pos[X]-1, h->pos[Y], h->pos[Z]-1, world, blockType);
 }
 
-void damageHeli(int index, Heli* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLDZ])
+void damageHeli(int index, Heli* h, int dmg, GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
-    v->health -= dmg;
-    if (v->health <= 0) {
+    h->health -= dmg;
+    if (h->health <= 0) {
         //undraw the vehicle
-        /*
-        setWorldBlockF(v->front, world, 0);
-        if (inBoundsV(v->mid))
-            setWorldBlockF(v->mid, world, 0);
-        if (inBoundsV(v->back))
-            setWorldBlockF(v->back, world, 0); 
-
-        //Create crater
-        if ((int)v->mid[Y]>1)
-            for (int x = (int)v->mid[X]-1; x <= (int)v->mid[X]+1; x++)
-                for (int y = (int)v->mid[Y]-1; y <= (int)v->mid[Y]; y++)
-                    for (int z = (int)v->mid[Z]-1; z <= (int)v->mid[Z]+1; z++)
-                        if (inBounds(x,y,z))
-                            world[x][y][z] = 0;
-        //Place meteor back in world
-        if (v->hasBlock) {
-            world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = 0;
-            List* gms = getGroundedMeteors();
-            GroundedMeteor* gm = malloc(sizeof(GroundedMeteor));
-            memcpy(gm->pos, v->mid, sizeof(float)*3);
-            if ((int)v->mid[Y]>1)
-                gm->pos[Y] -= 1;
-            setWorldBlockF(gm->pos, world, METEOR);
-            listAdd(gms, gm);
-        }
-
+        drawHeli(h, world, 0);
 
         //remove it from the world
         free(listRemove(helicopters, index));
-        */
     }
 }
 
@@ -119,29 +96,6 @@ float moveHeliToDest(Heli* h, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
     if (vectorLength(h->move) >= 1) {
         getUnitVector(h->move, h->move);
 
-        //int nextBlock = world[(int)(v->front[X] + v->move[X])][(int)(v->front[Y])][(int)(v->front[Z]+v->move[Z])];
-
-        /*
-        //Check if 2 blocks in front are occupied, start climbing
-        if (nextBlock != 0) {
-            //If we can move on top of block in front 
-            if (world[(int)(v->front[X] + v->move[X])][(int)(v->front[Y]+1)][(int)(v->front[Z]+v->move[Z])] == 0) {
-                v->front[X] += v->move[X]; 
-                v->front[Z] += v->move[Z]; 
-            }
-            v->front[Y] += 1.0;
-        } else {
-            //Check if block below is empty (needs to fall down)
-            if (world[(int)v->front[X]][(int)v->front[Y]-1][(int)v->front[Z]]==0) {
-                v->front[Y] -= 1.0;
-            } else {
-                v->front[X] += v->move[X]; 
-                v->front[Z] += v->move[Z]; 
-                if (world[(int)v->front[X]][(int)(v->front[Y]-1.0)][(int)v->front[Z]]==0)
-                    v->front[Y] -= 1.0;
-            }
-        }
-        */
         if (h->pos[Y] < HELI_HEIGHT) {
             h->pos[Y] += 1;
         } else {
@@ -154,31 +108,38 @@ float moveHeliToDest(Heli* h, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
     return vectorLength(direction);
 }
 
-void moveHeli(Heli* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
+void moveHeli(Heli* h, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
-    List* grounded = getGroundedMeteors();
-    int numMeteors = listSize(grounded);
-    //TODO look for targets
-    /*
-    for (int a = 0; a < numMeteors; a++) {
-        GroundedMeteor* m = (GroundedMeteor*)listGet(grounded, a);
-        if (getWorldBlockF(m->pos, world) == METEOR) {
-            if (distanceVector(v->front, m->pos) <= 10 && inBoundsV(m->pos)) {
-                memcpy(v->dest, m->pos, sizeof(float)*3);
-                v->state = 1;
-                return;
-            }
-        } else {
-            free(listRemove(grounded, a));
-            a--;
-            numMeteors--;
-        }
-    }
-    */
-    float dist = moveHeliToDest(v, world, deltaTime);
+    float dist = moveHeliToDest(h, world, deltaTime);
     //Move vehicle
     if (dist < 0.5)
-        generateRandomCord(v->dest);
+        generateRandomCord(h->dest);
+
+    if (h->cooldown > 0) {
+        h->cooldown -= deltaTime;
+        return;
+    }
+    float heliPos[3] = {h->pos[0], h->pos[1]-1, h->pos[2]};
+    float closestTargetPos[3] = {-1,-1,-1};
+    //Look for targets
+    getClosestTarget(h->team, HELI_RANGE, heliPos, closestTargetPos);
+
+    //shoot at target
+    if (inBoundsV(closestTargetPos)) {
+        float aim[3];
+        memcpy(aim, closestTargetPos, sizeof(float)*3);
+        for (int a = 0; a < 3; a++)
+            aim[a] -= heliPos[a];
+        getUnitVector(aim, aim);
+        float proj[3];
+        memcpy(proj, heliPos, sizeof(float)*3);
+        for (int a = 0; a < 3; a++) {
+            proj[a] += aim[a]*2;
+            aim[a] *= PROJECTILE_SPEED;
+        }
+        if (createProjectile(0,h->team, proj, aim))
+            h->cooldown = HELI_COOL_DOWN;
+    }
 }
 
 void updateHeli(GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)

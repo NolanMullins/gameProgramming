@@ -15,6 +15,7 @@
 #include "list.h"
 
 #define APPLY_GRAVITY 0
+#define PROJECTILE_SPEED 30
 
 typedef struct projectile
 {

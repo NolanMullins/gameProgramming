@@ -19,6 +19,8 @@
 #include "tank.h"
 #include "meteor.h"
 #include "score.h"
+#include "tower.h"
+#include "projectile.h"
 
 List* tanks;
 
@@ -40,6 +42,7 @@ void createTank(int team)
     t->health = MaxTankHealth;
     t->mid[X]=-1;
     t->back[X]=-1;
+    t->cooldown = TANK_COOL_DOWN;
     int direction = 1;
     if (team==1)
         direction = -1;
@@ -52,48 +55,25 @@ void createTank(int team)
     listAdd(tanks, t);
 }
 
-void damageTank(int index, Tank* v, int dmg, GLubyte world[WORLDX][WORLDY][WORLDZ])
+void damageTank(int index, Tank* t, int dmg, GLubyte world[WORLDX][WORLDY][WORLDZ])
 {
-    v->health -= dmg;
-    if (v->health <= 0) {
-        /*undraw the vehicle
-        setWorldBlockF(v->front, world, 0);
-        if (inBoundsV(v->mid))
-            setWorldBlockF(v->mid, world, 0);
-        if (inBoundsV(v->back))
-            setWorldBlockF(v->back, world, 0); 
+    t->health -= dmg;
+    if (t->health <= 0) {
+        //undraw the vehicle
+        drawTank(t, world, 0);
 
-        //Create crater
+        /*Create crater
         if ((int)v->mid[Y]>1)
             for (int x = (int)v->mid[X]-1; x <= (int)v->mid[X]+1; x++)
                 for (int y = (int)v->mid[Y]-1; y <= (int)v->mid[Y]; y++)
                     for (int z = (int)v->mid[Z]-1; z <= (int)v->mid[Z]+1; z++)
                         if (inBounds(x,y,z))
                             world[x][y][z] = 0;
-        //Place meteor back in world
-        if (v->hasBlock) {
-            world[(int)v->mid[X]][(int)v->mid[Y]+1][(int)v->mid[Z]] = 0;
-            List* gms = getGroundedMeteors();
-            GroundedMeteor* gm = malloc(sizeof(GroundedMeteor));
-            memcpy(gm->pos, v->mid, sizeof(float)*3);
-            if ((int)v->mid[Y]>1)
-                gm->pos[Y] -= 1;
-            setWorldBlockF(gm->pos, world, METEOR);
-            listAdd(gms, gm);
-        }
-
+                            */
 
         //remove it from the world
         free(listRemove(tanks, index));
-        */
     }
-}
-
-float isNegUtil(float tmp)
-{
-    if (tmp>=0)
-        return 1.0;
-    return -1.0;
 }
 
 bool isGroundBelow(float x, float y, float z, float dir[3], GLubyte world[WORLDX][WORLDY][WORLDZ]) 
@@ -144,8 +124,6 @@ float moveTankToDest(Tank* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
         int nextBlock = world[(int)(v->front[X] + v->move[X])][(int)(v->front[Y])][(int)(v->front[Z]+v->move[Z])];
         int nextBlock2 = world[(int)(v->front[X] + v->move[X])+diff[X]][(int)(v->front[Y])][(int)(v->front[Z]+v->move[Z])+diff[Z]];
 
-//TODO, modify for double block
-
         //Check if running into a tower
         if (nextBlock == TOWER_A || nextBlock == TOWER_B) {
             //Side step block
@@ -192,31 +170,38 @@ float moveTankToDest(Tank* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float delta
     return vectorLength(direction);
 }
 
-//Search for meteors
-void moveTank(Tank* v, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
+void moveTank(Tank* t, GLubyte world[WORLDX][WORLDY][WORLDZ], float deltaTime)
 {
-    //TODO look for things to shoot
-    /*
-    List* grounded = getGroundedMeteors();
-    int numMeteors = listSize(grounded);
-    for (int a = 0; a < numMeteors; a++) {
-        GroundedMeteor* m = (GroundedMeteor*)listGet(grounded, a);
-        if (getWorldBlockF(m->pos, world) == METEOR) {
-            if (distanceVector(v->front, m->pos) <= 10 && inBoundsV(m->pos)) {
-                memcpy(v->dest, m->pos, sizeof(float)*3);
-                v->state = 1;
-                return;
-            }
-        } else {
-            free(listRemove(grounded, a));
-            a--;
-            numMeteors--;
-        }
-    }*/
-    float dist = moveTankToDest(v, world, deltaTime);
+    float dist = moveTankToDest(t, world, deltaTime);
     //Move vehicle
     if (dist < 0.5)
-        generateRandomCord(v->dest);
+        generateRandomCord(t->dest);
+
+    if (t->cooldown > 0) {
+        t->cooldown -= deltaTime;
+        return;
+    }
+    float tank[3] = {t->front[0], t->front[1]+2, t->front[2]};
+    float closestTargetPos[3] = {-1,-1,-1};
+    //Look for targets
+    getClosestTarget(t->team, TANK_RANGE, tank, closestTargetPos);
+
+    //shoot at target
+    if (inBoundsV(closestTargetPos)) {
+        float aim[3];
+        memcpy(aim, closestTargetPos, sizeof(float)*3);
+        for (int a = 0; a < 3; a++)
+            aim[a] -= tank[a];
+        getUnitVector(aim, aim);
+        float proj[3];
+        memcpy(proj, tank, sizeof(float)*3);
+        for (int a = 0; a < 3; a++) {
+            proj[a] += aim[a]*2;
+            aim[a] *= PROJECTILE_SPEED;
+        }
+        if (createProjectile(0,t->team, proj, aim))
+            t->cooldown = TANK_COOL_DOWN;
+    }
 }
 
 void setBlockHelper(float x, float y, float z, GLubyte world[WORLDX][WORLDY][WORLDZ], int blockType)
@@ -246,8 +231,7 @@ void drawTank(Tank* t, GLubyte world[WORLDX][WORLDY][WORLDZ], int blockType)
     setBlockHelper(t->front[X]-isNegUtil(t->currDirection[X]), t->front[Y]+1, t->front[Z], world, blockType);
     setBlockHelper(t->front[X], t->front[Y]+1, t->front[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
     setBlockHelper(t->front[X]-isNegUtil(t->currDirection[X]), t->front[Y]+1, t->front[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
-    //Fin
-    //setWorldBlockCustom(t->front[X]-isNegUtil(t->currDirection[X]), t->front[Y]+1, t->front[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
+
     if (inBoundsV(t->back)) {
         setBlockHelper(t->back[X], t->back[Y], t->back[Z], world, blockType);
         setBlockHelper(t->back[X]-isNegUtil(t->currDirection[X]), t->back[Y], t->back[Z], world, blockType);
@@ -258,9 +242,6 @@ void drawTank(Tank* t, GLubyte world[WORLDX][WORLDY][WORLDZ], int blockType)
         setBlockHelper(t->back[X]-isNegUtil(t->currDirection[X]), t->back[Y]+1, t->back[Z], world, blockType);
         setBlockHelper(t->back[X], t->back[Y]+1, t->back[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
         setBlockHelper(t->back[X]-isNegUtil(t->currDirection[X]), t->back[Y]+1, t->back[Z]-isNegUtil(t->currDirection[Z]), world, blockType);
-
-        //Fin
-        //setWorldBlockCustom(t->back[X], t->back[Y]+1, t->back[Z], world, blockType);
     }
 }
 

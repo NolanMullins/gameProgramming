@@ -12,8 +12,10 @@
 #include "world.h"
 #include "list.h"
 
-#define HELI_VEL 8
+#define HELI_VEL 10
 #define HELI_HEIGHT GROUND_LEVEL+15
+#define HELI_COOL_DOWN 1
+#define HELI_RANGE 30
 
 #define MaxHeliHealth 2
 #define ProjectileDMG 1
@@ -26,6 +28,7 @@ typedef struct heli
     float currDirection[3];
     float pos[3];
     float move[3];
+    float cooldown;
 } Heli;
 
 void initHeli();
